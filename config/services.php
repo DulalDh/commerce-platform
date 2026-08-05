@@ -53,4 +53,16 @@ return [
         'redirect' => env('APPLE_REDIRECT_URI'),
     ],
 
+    'sslcommerz' => [
+        'store_id' => env('SSLCOMMERZ_STORE_ID'),
+        'store_password' => env('SSLCOMMERZ_STORE_PASSWORD'),
+        'api_url' => env('SSLCOMMERZ_API_URL', 'https://sandbox.sslcommerz.com/gwprocess/v4/api.php'),
+    ],
+
+    'bkash' => [
+        'app_key' => env('BKASH_APP_KEY'),
+        'app_secret' => env('BKASH_APP_SECRET'),
+        'api_url' => env('BKASH_API_URL', 'https://tokenized.sandbox.bka.sh/v1.2.0-beta/checkout'),
+    ],
+
 ];

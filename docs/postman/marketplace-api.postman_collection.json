@@ -1,0 +1,633 @@
+{
+  "info": {
+    "name": "Marketplace API — Phase 0 & 1",
+    "description": "Multi-Tenant SaaS Marketplace Platform backend. Run folders top-to-bottom on a fresh DB (after `php artisan migrate` + the RBAC seeder) and every request should work as-is — each request that creates a resource saves its id into a collection variable that later requests reuse.\n\nSuper Admin endpoints (RBAC folder) need a Super Admin user, which has no self-service registration endpoint by design (Phase 0 seeds the `super-admin` role/permissions but not a user). Create one via tinker, then paste the resulting token into `admin_token`:\n\n```\nphp artisan tinker --execute=\"\n\\$admin = App\\\\Models\\\\User::create(['tenant_id'=>null,'name'=>'Root Admin','email'=>'root@platform.test','password'=>Hash::make('password123')]);\n\\$admin->assignRole(App\\\\Modules\\\\RBAC\\\\Models\\\\Role::withoutGlobalScopes()->where('name','super-admin')->first());\n\"\n```\nThen use the \"Login (Super Admin)\" request in the RBAC folder.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8123/api/v1" },
+    { "key": "tenant_subdomain", "value": "acme-{{$randomInt}}" },
+    { "key": "owner_email", "value": "owner-{{$randomInt}}@example.test" },
+    { "key": "owner_password", "value": "password123" },
+    { "key": "token", "value": "" },
+    { "key": "admin_token", "value": "" },
+    { "key": "tenant_id", "value": "" },
+    { "key": "category_id", "value": "" },
+    { "key": "brand_id", "value": "" },
+    { "key": "tag_id", "value": "" },
+    { "key": "product_id", "value": "" },
+    { "key": "variant_id", "value": "" },
+    { "key": "image_id", "value": "" },
+    { "key": "cart_item_id", "value": "" },
+    { "key": "order_id", "value": "" },
+    { "key": "payment_id", "value": "" },
+    { "key": "customer_id", "value": "" },
+    { "key": "role_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Tenants",
+      "item": [
+        {
+          "name": "Register Tenant (creates tenant + owner user)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('tenant_id', body.data.id);",
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/tenants", "host": ["{{base_url}}"], "path": ["tenants"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Acme Co\",\n  \"type\": \"merchant\",\n  \"subdomain\": \"{{tenant_subdomain}}\",\n  \"owner_name\": \"Alice Owner\",\n  \"owner_email\": \"{{owner_email}}\",\n  \"owner_password\": \"{{owner_password}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Store Status",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/store/status", "host": ["{{base_url}}"], "path": ["store", "status"] }
+          }
+        },
+        {
+          "name": "Update Store Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/store/profile", "host": ["{{base_url}}"], "path": ["store", "profile"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"We sell fine goods.\",\n  \"contact_email\": \"hello@acme.test\",\n  \"address\": {\n    \"line1\": \"1 Main St\",\n    \"city\": \"Dhaka\",\n    \"country\": \"Bangladesh\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Store Theme (logo/banner upload)",
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "{{base_url}}/store/theme-basic", "host": ["{{base_url}}"], "path": ["store", "theme-basic"] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "theme_color", "value": "#3366FF", "type": "text" },
+                { "key": "logo", "type": "file", "src": [], "disabled": true },
+                { "key": "banner", "type": "file", "src": [], "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload KYC Document",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{base_url}}/store/kyc-documents", "host": ["{{base_url}}"], "path": ["store", "kyc-documents"] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "type", "value": "business_license", "type": "text" },
+                { "key": "document", "type": "file", "src": [] }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Auth",
+      "item": [
+        {
+          "name": "Login (Tenant Owner)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('token', body.data.token);",
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{owner_email}}\",\n  \"password\": \"{{owner_password}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register (standalone customer/user)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sam Customer\",\n  \"email\": \"sam-{{$randomInt}}@example.test\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{base_url}}/auth/refresh", "host": ["{{base_url}}"], "path": ["auth", "refresh"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Catalog",
+      "item": [
+        {
+          "name": "Categories",
+          "item": [
+            {
+              "name": "Create Category",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": { "exec": ["pm.collectionVariables.set('category_id', pm.response.json().data.id);"] }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/categories", "host": ["{{base_url}}"], "path": ["categories"] },
+                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Electronics\",\n  \"slug\": \"electronics-{{$randomInt}}\"\n}" }
+              }
+            },
+            {
+              "name": "List Categories",
+              "request": { "method": "GET", "url": { "raw": "{{base_url}}/categories", "host": ["{{base_url}}"], "path": ["categories"] } }
+            },
+            {
+              "name": "Get Category",
+              "request": { "method": "GET", "url": { "raw": "{{base_url}}/categories/{{category_id}}", "host": ["{{base_url}}"], "path": ["categories", "{{category_id}}"] } }
+            },
+            {
+              "name": "Update Category",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/categories/{{category_id}}", "host": ["{{base_url}}"], "path": ["categories", "{{category_id}}"] },
+                "body": { "mode": "raw", "raw": "{\n  \"description\": \"Gadgets and gizmos\"\n}" }
+              }
+            },
+            {
+              "name": "Delete Category",
+              "request": { "method": "DELETE", "url": { "raw": "{{base_url}}/categories/{{category_id}}", "host": ["{{base_url}}"], "path": ["categories", "{{category_id}}"] } }
+            }
+          ]
+        },
+        {
+          "name": "Brands",
+          "item": [
+            {
+              "name": "Create Brand",
+              "event": [
+                { "listen": "test", "script": { "exec": ["pm.collectionVariables.set('brand_id', pm.response.json().data.id);"] } }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/brands", "host": ["{{base_url}}"], "path": ["brands"] },
+                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Acme Brand\",\n  \"slug\": \"acme-brand-{{$randomInt}}\"\n}" }
+              }
+            },
+            {
+              "name": "List Brands",
+              "request": { "method": "GET", "url": { "raw": "{{base_url}}/brands", "host": ["{{base_url}}"], "path": ["brands"] } }
+            },
+            {
+              "name": "Update Brand",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/brands/{{brand_id}}", "host": ["{{base_url}}"], "path": ["brands", "{{brand_id}}"] },
+                "body": { "mode": "raw", "raw": "{\n  \"is_active\": true\n}" }
+              }
+            },
+            {
+              "name": "Delete Brand",
+              "request": { "method": "DELETE", "url": { "raw": "{{base_url}}/brands/{{brand_id}}", "host": ["{{base_url}}"], "path": ["brands", "{{brand_id}}"] } }
+            }
+          ]
+        },
+        {
+          "name": "Tags",
+          "item": [
+            {
+              "name": "Create Tag",
+              "event": [
+                { "listen": "test", "script": { "exec": ["pm.collectionVariables.set('tag_id', pm.response.json().data.id);"] } }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/tags", "host": ["{{base_url}}"], "path": ["tags"] },
+                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Sale\",\n  \"slug\": \"sale-{{$randomInt}}\"\n}" }
+              }
+            },
+            {
+              "name": "List Tags",
+              "request": { "method": "GET", "url": { "raw": "{{base_url}}/tags", "host": ["{{base_url}}"], "path": ["tags"] } }
+            },
+            {
+              "name": "Delete Tag",
+              "request": { "method": "DELETE", "url": { "raw": "{{base_url}}/tags/{{tag_id}}", "host": ["{{base_url}}"], "path": ["tags", "{{tag_id}}"] } }
+            }
+          ]
+        },
+        {
+          "name": "Products",
+          "item": [
+            {
+              "name": "Create Product (with variant)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.collectionVariables.set('product_id', body.data.id);",
+                      "if (body.data.variants && body.data.variants.length) {",
+                      "  pm.collectionVariables.set('variant_id', body.data.variants[0].id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/products", "host": ["{{base_url}}"], "path": ["products"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"T-Shirt\",\n  \"slug\": \"t-shirt-{{$randomInt}}\",\n  \"price\": 19.99,\n  \"category_id\": \"{{category_id}}\",\n  \"brand_id\": \"{{brand_id}}\",\n  \"tag_ids\": [\"{{tag_id}}\"],\n  \"status\": \"published\",\n  \"variants\": [\n    { \"name\": \"Red / L\", \"price\": 21.99, \"attributes\": { \"color\": \"red\", \"size\": \"L\" } }\n  ]\n}"
+                }
+              }
+            },
+            {
+              "name": "List Products",
+              "request": { "method": "GET", "url": { "raw": "{{base_url}}/products", "host": ["{{base_url}}"], "path": ["products"] } }
+            },
+            {
+              "name": "Get Product",
+              "request": { "method": "GET", "url": { "raw": "{{base_url}}/products/{{product_id}}", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}"] } }
+            },
+            {
+              "name": "Update Product",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/products/{{product_id}}", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}"] },
+                "body": { "mode": "raw", "raw": "{\n  \"price\": 17.99\n}" }
+              }
+            },
+            {
+              "name": "Upload Product Image",
+              "event": [
+                { "listen": "test", "script": { "exec": ["pm.collectionVariables.set('image_id', pm.response.json().data.id);"] } }
+              ],
+              "request": {
+                "method": "POST",
+                "url": { "raw": "{{base_url}}/products/{{product_id}}/images", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}", "images"] },
+                "body": { "mode": "formdata", "formdata": [{ "key": "image", "type": "file", "src": [] }] }
+              }
+            },
+            {
+              "name": "Delete Product Image",
+              "request": {
+                "method": "DELETE",
+                "url": { "raw": "{{base_url}}/products/{{product_id}}/images/{{image_id}}", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}", "images", "{{image_id}}"] }
+              }
+            },
+            {
+              "name": "Add Product Variant",
+              "event": [
+                { "listen": "test", "script": { "exec": ["pm.collectionVariables.set('variant_id', pm.response.json().data.id);"] } }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/products/{{product_id}}/variants", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}", "variants"] },
+                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Blue / M\",\n  \"price\": 20.99,\n  \"attributes\": { \"color\": \"blue\", \"size\": \"M\" }\n}" }
+              }
+            },
+            {
+              "name": "Delete Product Variant",
+              "request": {
+                "method": "DELETE",
+                "url": { "raw": "{{base_url}}/products/{{product_id}}/variants/{{variant_id}}", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}", "variants", "{{variant_id}}"] }
+              }
+            },
+            {
+              "name": "Delete Product",
+              "request": { "method": "DELETE", "url": { "raw": "{{base_url}}/products/{{product_id}}", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}"] } }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Inventory",
+      "item": [
+        {
+          "name": "Stock In",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/inventory/stock-in", "host": ["{{base_url}}"], "path": ["inventory", "stock-in"] },
+            "body": { "mode": "raw", "raw": "{\n  \"product_id\": \"{{product_id}}\",\n  \"quantity\": 100,\n  \"notes\": \"Initial stock\"\n}" }
+          }
+        },
+        {
+          "name": "Stock Out",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/inventory/stock-out", "host": ["{{base_url}}"], "path": ["inventory", "stock-out"] },
+            "body": { "mode": "raw", "raw": "{\n  \"product_id\": \"{{product_id}}\",\n  \"quantity\": 5,\n  \"notes\": \"Damaged/removed\"\n}" }
+          }
+        },
+        {
+          "name": "Adjustment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/inventory/adjustment", "host": ["{{base_url}}"], "path": ["inventory", "adjustment"] },
+            "body": { "mode": "raw", "raw": "{\n  \"product_id\": \"{{product_id}}\",\n  \"delta\": -2,\n  \"notes\": \"Stock count correction\"\n}" }
+          }
+        },
+        {
+          "name": "Transfer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/inventory/transfer", "host": ["{{base_url}}"], "path": ["inventory", "transfer"] },
+            "body": { "mode": "raw", "raw": "{\n  \"from_product_id\": \"{{product_id}}\",\n  \"to_product_id\": \"{{product_id}}\",\n  \"to_variant_id\": \"{{variant_id}}\",\n  \"quantity\": 1,\n  \"notes\": \"Reallocate to variant\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Orders (Cart, Checkout, Status)",
+      "item": [
+        {
+          "name": "Get Cart",
+          "request": { "method": "GET", "url": { "raw": "{{base_url}}/cart", "host": ["{{base_url}}"], "path": ["cart"] } }
+        },
+        {
+          "name": "Add to Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const items = pm.response.json().data.items;",
+                  "if (items && items.length) { pm.collectionVariables.set('cart_item_id', items[items.length - 1].id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/cart", "host": ["{{base_url}}"], "path": ["cart"] },
+            "body": { "mode": "raw", "raw": "{\n  \"product_id\": \"{{product_id}}\",\n  \"quantity\": 1\n}" }
+          }
+        },
+        {
+          "name": "Update Cart Item Quantity",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/cart/items/{{cart_item_id}}", "host": ["{{base_url}}"], "path": ["cart", "items", "{{cart_item_id}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 2\n}" }
+          }
+        },
+        {
+          "name": "Remove Cart Item",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/cart/items/{{cart_item_id}}", "host": ["{{base_url}}"], "path": ["cart", "items", "{{cart_item_id}}"] }
+          }
+        },
+        {
+          "name": "Checkout",
+          "event": [
+            { "listen": "test", "script": { "exec": ["pm.collectionVariables.set('order_id', pm.response.json().data.id);"] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/checkout", "host": ["{{base_url}}"], "path": ["checkout"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shipping_address\": {\n    \"line1\": \"1 Main St\",\n    \"city\": \"Dhaka\",\n    \"country\": \"Bangladesh\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "List Orders",
+          "request": { "method": "GET", "url": { "raw": "{{base_url}}/orders", "host": ["{{base_url}}"], "path": ["orders"] } }
+        },
+        {
+          "name": "Get Order",
+          "request": { "method": "GET", "url": { "raw": "{{base_url}}/orders/{{order_id}}", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}"] } }
+        },
+        {
+          "name": "Update Order Status",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/orders/{{order_id}}/status", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}", "status"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"processing\",\n  \"note\": \"Preparing shipment\"\n}" },
+            "description": "Guarded state machine: pending→confirmed→processing→shipped→delivered→(returned|refunded|exchanged), or cancelled from pending/confirmed/processing. If checkout hasn't been paid yet (status still pending), use 'confirmed' first — see the Payments folder to auto-confirm via COD instead."
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Payments",
+      "item": [
+        {
+          "name": "Initiate Payment (COD — auto-completes, confirms order)",
+          "event": [
+            { "listen": "test", "script": { "exec": ["pm.collectionVariables.set('payment_id', pm.response.json().data.payment_id);"] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/payments/initiate", "host": ["{{base_url}}"], "path": ["payments", "initiate"] },
+            "body": { "mode": "raw", "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"gateway\": \"cod\"\n}" }
+          }
+        },
+        {
+          "name": "Initiate Payment (SSLCommerz — returns redirect_url)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/payments/initiate", "host": ["{{base_url}}"], "path": ["payments", "initiate"] },
+            "body": { "mode": "raw", "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"gateway\": \"sslcommerz\"\n}" }
+          }
+        },
+        {
+          "name": "Initiate Payment (bKash — returns redirect_url)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/payments/initiate", "host": ["{{base_url}}"], "path": ["payments", "initiate"] },
+            "body": { "mode": "raw", "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"gateway\": \"bkash\"\n}" }
+          }
+        },
+        {
+          "name": "Webhook (sslcommerz) — NOT directly callable from here",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{base_url}}/payments/webhook/sslcommerz", "host": ["{{base_url}}"], "path": ["payments", "webhook", "sslcommerz"] },
+            "body": { "mode": "raw", "raw": "{}" },
+            "description": "This will 422 as-is: the gateway signs webhook bodies with an HMAC-SHA256 signature (X-Signature header) computed against config('services.sslcommerz.store_password'), which Postman can't compute inline. To exercise this path, use the automated test in tests/Feature/PaymentWebhookIdempotencyTest.php, which builds a correctly-signed request."
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Customers",
+      "item": [
+        {
+          "name": "List Customers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const items = pm.response.json().data;",
+                  "if (items && items.length) { pm.collectionVariables.set('customer_id', items[0].id); }"
+                ]
+              }
+            }
+          ],
+          "request": { "method": "GET", "url": { "raw": "{{base_url}}/customers", "host": ["{{base_url}}"], "path": ["customers"] } }
+        },
+        {
+          "name": "Get Customer",
+          "request": { "method": "GET", "url": { "raw": "{{base_url}}/customers/{{customer_id}}", "host": ["{{base_url}}"], "path": ["customers", "{{customer_id}}"] } }
+        },
+        {
+          "name": "Add Customer Note",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/customers/{{customer_id}}/notes", "host": ["{{base_url}}"], "path": ["customers", "{{customer_id}}", "notes"] },
+            "body": { "mode": "raw", "raw": "{\n  \"note\": \"VIP customer, handle with care\"\n}" }
+          }
+        },
+        {
+          "name": "List Customer Notes",
+          "request": { "method": "GET", "url": { "raw": "{{base_url}}/customers/{{customer_id}}/notes", "host": ["{{base_url}}"], "path": ["customers", "{{customer_id}}", "notes"] } }
+        },
+        {
+          "name": "Sync Customer Tags",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/customers/{{customer_id}}/tags", "host": ["{{base_url}}"], "path": ["customers", "{{customer_id}}", "tags"] },
+            "body": { "mode": "raw", "raw": "{\n  \"tag_ids\": [\"{{tag_id}}\"]\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. RBAC (Super Admin only)",
+      "item": [
+        {
+          "name": "Login (Super Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('admin_token', body.data.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"root@platform.test\",\n  \"password\": \"password123\"\n}" },
+            "description": "Requires a Super Admin user to already exist — see the collection-level description for the tinker command to create one."
+          }
+        },
+        {
+          "name": "List Roles",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/roles", "host": ["{{base_url}}"], "path": ["roles"] }
+          }
+        },
+        {
+          "name": "Create Role",
+          "event": [
+            { "listen": "test", "script": { "exec": ["pm.collectionVariables.set('role_id', pm.response.json().data.id);"] } }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/roles", "host": ["{{base_url}}"], "path": ["roles"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"support-staff\"\n}" }
+          }
+        },
+        {
+          "name": "List Permissions",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/permissions", "host": ["{{base_url}}"], "path": ["permissions"] }
+          }
+        },
+        {
+          "name": "Create Permission",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/permissions", "host": ["{{base_url}}"], "path": ["permissions"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"manage-refunds\"\n}" }
+          }
+        }
+      ]
+    }
+  ]
+}

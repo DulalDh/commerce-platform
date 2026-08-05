@@ -20,6 +20,20 @@ class Tenant extends Model
         'subscription_plan_id',
         'domain',
         'subdomain',
+        'description',
+        'contact_email',
+        'contact_phone',
+        'address',
+        'logo_path',
+        'banner_path',
+        'theme_color',
+        'kyc_status',
+        'kyc_documents',
+    ];
+
+    protected $casts = [
+        'address' => 'array',
+        'kyc_documents' => 'array',
     ];
 
     public function users(): HasMany

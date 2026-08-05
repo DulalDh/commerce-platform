@@ -7,6 +7,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 use Spatie\Permission\Exceptions\UnauthorizedException as PermissionUnauthorizedException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
@@ -51,6 +52,11 @@ class ApiResponse
                 'Resource not found.',
                 [],
                 404
+            ),
+            $e instanceof InvalidArgumentException => self::error(
+                $e->getMessage(),
+                [],
+                422
             ),
             default => self::error(
                 app()->hasDebugModeEnabled() ? $e->getMessage() : 'Server error.',

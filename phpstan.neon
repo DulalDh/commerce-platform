@@ -18,3 +18,16 @@ parameters:
         # stateless() is defined on concrete Socialite providers, not the
         # base Provider contract Socialite::driver() is typed to return.
         - '#Call to an undefined method Laravel\\Socialite\\Contracts\\Provider::stateless\(\)#'
+        # Larastan's DB-schema property inference isn't wired up in this
+        # project (no doctrine/dbal), so it can't infer Eloquent attribute
+        # properties from migrations for models that don't declare @property
+        # PHPDoc. All of these are real, migration-backed columns.
+        - '#Access to an undefined property App\\Modules\\.*\\Models\\.*#'
+        # Larastan infers BelongsTo/HasOne magic relation properties as
+        # always non-null from the relation method's return type, even when
+        # the FK is nullable (CartItem::$variant) or the related row may not
+        # exist yet (User::$lifetimeValue before the LTV job first runs).
+        # The nullsafe operators here are load-bearing, not redundant -
+        # removing them to satisfy this check would introduce a real
+        # null-pointer bug.
+        - identifier: nullsafe.neverNull
