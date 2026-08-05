@@ -1,0 +1,5 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+// {{name}} module routes — stub, no endpoints yet.

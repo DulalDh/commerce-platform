@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, redis
+      - run: composer install --no-interaction --prefer-dist
+      - run: ./vendor/bin/pint --test
+      - run: ./vendor/bin/phpstan analyse --no-progress --memory-limit=512M
+
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: marketplace
+          POSTGRES_PASSWORD: marketplace
+          POSTGRES_DB: marketplace
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, redis
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist
+
+      - name: Provision non-superuser app role (mirrors docker/postgres/init.sql)
+        run: |
+          PGPASSWORD=marketplace psql -h 127.0.0.1 -U marketplace -d marketplace -c "
+            CREATE ROLE marketplace_app LOGIN PASSWORD 'marketplace_app_secret';
+            GRANT CONNECT ON DATABASE marketplace TO marketplace_app;
+            GRANT USAGE, CREATE ON SCHEMA public TO marketplace_app;
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO marketplace_app;
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO marketplace_app;
+            CREATE DATABASE marketplace_test OWNER marketplace;
+            GRANT CONNECT ON DATABASE marketplace_test TO marketplace_app;
+          "
+          PGPASSWORD=marketplace psql -h 127.0.0.1 -U marketplace -d marketplace_test -c "
+            GRANT USAGE, CREATE ON SCHEMA public TO marketplace_app;
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO marketplace_app;
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO marketplace_app;
+          "
+
+      - run: cp .env.example .env
+      - run: php artisan key:generate
+
+      - name: Migrate check (dry run against a prod-like schema)
+        run: php artisan migrate --pretend
+
+      - name: Run migrations
+        env:
+          DB_DATABASE: marketplace_test
+        run: php artisan migrate --force
+
+      - name: Run test suite
+        env:
+          DB_DATABASE: marketplace_test
+        run: ./vendor/bin/pest
