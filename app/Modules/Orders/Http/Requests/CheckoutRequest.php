@@ -19,6 +19,7 @@ class CheckoutRequest extends FormRequest
             'shipping_address.city' => ['required', 'string', 'max:120'],
             'shipping_address.country' => ['required', 'string', 'max:120'],
             'billing_address' => ['nullable', 'array'],
+            'coupon_code' => ['nullable', 'string', 'max:100'],
         ];
     }
 }

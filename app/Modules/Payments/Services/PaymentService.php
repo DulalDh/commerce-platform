@@ -34,10 +34,11 @@ class PaymentService
 
         $result = $this->resolver->resolve($gateway)->initiate($order, $payment);
 
-        // COD (and any gateway with no redirect step) completes immediately -
-        // there's no webhook coming, so the completion has to happen here.
-        if (($result['requires_redirect'] ?? true) === false) {
-            $this->completePayment($payment, gatewayReference: 'cod-'.$payment->idempotency_key, raw: []);
+        // Only gateways that explicitly opt in (COD) complete immediately -
+        // Bank Transfer also has no redirect step but must stay pending
+        // until a staff member manually confirms the funds arrived.
+        if (($result['auto_complete'] ?? false) === true) {
+            $this->completePayment($payment, gatewayReference: $gateway.'-'.$payment->idempotency_key, raw: []);
         }
 
         return ['payment_id' => $payment->id, ...$result];
@@ -92,14 +93,37 @@ class PaymentService
         });
     }
 
+    /**
+     * Staff-initiated confirmation for gateways with no webhook (Bank
+     * Transfer) - the human checking the bank statement is standing in
+     * for what would otherwise be an automated callback.
+     */
+    public function confirmManual(Payment $payment, ?int $userId = null): void
+    {
+        if ($payment->gateway !== 'bank_transfer') {
+            throw new InvalidArgumentException('Only Bank Transfer payments can be manually confirmed.');
+        }
+
+        if ($payment->status !== 'pending') {
+            return;
+        }
+
+        $this->completePayment($payment, gatewayReference: 'manual-'.$payment->idempotency_key, raw: ['confirmed_by' => $userId]);
+    }
+
     protected function completePayment(Payment $payment, string $gatewayReference, array $raw): void
     {
         try {
-            $payment->update([
+            // Wrapped in its own transaction (a SAVEPOINT, since callers
+            // already run inside one) - Postgres poisons the whole enclosing
+            // transaction on a unique-violation even when caught, so without
+            // this the caller's subsequent queries would fail with
+            // "current transaction is aborted".
+            DB::transaction(fn () => $payment->update([
                 'status' => 'completed',
                 'gateway_reference' => $gatewayReference,
                 'raw_payload' => $raw,
-            ]);
+            ]));
         } catch (UniqueConstraintViolationException) {
             // Another payment already claimed this gateway_reference - a
             // duplicate webhook delivery racing a concurrent one. The other

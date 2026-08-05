@@ -4,6 +4,7 @@ namespace App\Modules\Payments\Http\Controllers;
 
 use App\Modules\Orders\Models\Order;
 use App\Modules\Payments\Http\Requests\InitiatePaymentRequest;
+use App\Modules\Payments\Models\Payment;
 use App\Modules\Payments\Services\PaymentService;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -21,6 +22,17 @@ class PaymentController
         $result = $this->paymentService->initiate($order, $request->gateway);
 
         return ApiResponse::success($result, status: 201);
+    }
+
+    /**
+     * Tenant staff confirming a Bank Transfer payment after checking their
+     * bank statement - see PaymentService::confirmManual().
+     */
+    public function confirmManual(Request $request, Payment $payment): JsonResponse
+    {
+        $this->paymentService->confirmManual($payment, $request->user()->id);
+
+        return ApiResponse::success($payment->fresh());
     }
 
     /**

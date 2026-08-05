@@ -19,7 +19,7 @@ class CashOnDeliveryGateway implements PaymentGatewayInterface
 {
     public function initiate(Order $order, Payment $payment): array
     {
-        return ['requires_redirect' => false];
+        return ['requires_redirect' => false, 'auto_complete' => true];
     }
 
     public function verifyWebhookSignature(Request $request): bool

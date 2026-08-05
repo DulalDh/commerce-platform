@@ -3,12 +3,15 @@
 namespace App\Modules\Orders\Services;
 
 use App\Modules\Customers\Jobs\RecalculateLifetimeValueJob;
+use App\Modules\Marketplace\Services\CommissionService;
 use App\Modules\Orders\Jobs\GenerateInvoicePdfJob;
 use App\Modules\Orders\Models\Order;
 use InvalidArgumentException;
 
 class OrderStatusMachine
 {
+    public function __construct(protected CommissionService $commissionService) {}
+
     /** @var array<string, string[]> */
     protected const TRANSITIONS = [
         'pending' => ['confirmed', 'cancelled'],
@@ -48,6 +51,7 @@ class OrderStatusMachine
 
         if ($to === 'confirmed') {
             GenerateInvoicePdfJob::dispatch((string) $order->id);
+            $this->commissionService->calculateForOrder($order);
         }
 
         // Any status change can affect what counts toward LTV (confirmed

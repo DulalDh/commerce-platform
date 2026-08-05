@@ -11,6 +11,7 @@ class ProductResource extends BaseResource
     {
         return [
             'id' => $this->id,
+            'tenant_id' => $this->tenant_id,
             'category_id' => $this->category_id,
             'brand_id' => $this->brand_id,
             'name' => $this->name,
@@ -22,6 +23,8 @@ class ProductResource extends BaseResource
             'currency' => $this->currency,
             'status' => $this->status,
             'published_to_marketplace' => $this->published_to_marketplace,
+            'marketplace_status' => $this->marketplace_status,
+            'marketplace_rejection_reason' => $this->marketplace_rejection_reason,
             'attributes' => $this->attributes,
             'tags' => TagResource::collection($this->whenLoaded('tags')),
             'variants' => ProductVariantResource::collection($this->whenLoaded('variants')),

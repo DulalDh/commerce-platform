@@ -23,7 +23,7 @@ class CheckoutController
 
         try {
             $order = $this->checkoutService->checkout(
-                $cart, $request->shipping_address, $request->billing_address, $request->user()->id
+                $cart, $request->shipping_address, $request->billing_address, $request->user()->id, $request->coupon_code
             );
         } catch (InvalidArgumentException $e) {
             return ApiResponse::error($e->getMessage(), [], 422);

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuditLog;
+use App\Http\Middleware\EnforcePlanLimit;
 use App\Http\Middleware\ForceJsonResponse;
 use App\Http\Middleware\ResolveTenant;
 use App\Support\ApiResponse;
@@ -26,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
+            'plan.limit' => EnforcePlanLimit::class,
         ]);
 
         $middleware->api(prepend: [

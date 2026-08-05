@@ -16,7 +16,9 @@ class InitiatePaymentRequest extends FormRequest
     {
         return [
             'order_id' => ['required', 'uuid', Rule::exists('orders', 'id')->where('tenant_id', $this->user()->tenant_id)],
-            'gateway' => ['required', Rule::in(['sslcommerz', 'bkash', 'cod'])],
+            'gateway' => ['required', Rule::in([
+                'sslcommerz', 'bkash', 'cod', 'stripe', 'paypal', 'nagad', 'rocket', 'bank_transfer',
+            ])],
         ];
     }
 }

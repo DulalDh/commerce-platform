@@ -5,13 +5,17 @@ namespace App\Modules\Orders\Services;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductVariant;
 use App\Modules\Orders\Models\Cart;
+use App\Modules\Promotions\Services\PricingService;
 use App\Modules\Tenants\Support\TenantContext;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 class CartService
 {
-    public function __construct(protected TenantContext $tenantContext) {}
+    public function __construct(
+        protected TenantContext $tenantContext,
+        protected PricingService $pricingService,
+    ) {}
 
     public function activeCartFor(int $userId): Cart
     {
@@ -25,7 +29,8 @@ class CartService
         return DB::transaction(function () use ($cart, $productId, $variantId, $quantity) {
             $product = Product::findOrFail($productId);
 
-            $unitPrice = $product->sale_price ?? $product->price;
+            // Flash sales apply at the product level, not per-variant.
+            $unitPrice = $this->pricingService->effectivePrice($product);
 
             if ($variantId) {
                 $variant = ProductVariant::where('product_id', $productId)->findOrFail($variantId);

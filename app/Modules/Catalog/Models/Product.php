@@ -17,6 +17,7 @@ class Product extends Model
     protected $fillable = [
         'tenant_id', 'category_id', 'brand_id', 'name', 'slug', 'description',
         'sku', 'price', 'sale_price', 'currency', 'status', 'published_to_marketplace', 'attributes',
+        'marketplace_status', 'marketplace_rejection_reason',
     ];
 
     protected $casts = [
@@ -30,6 +31,7 @@ class Product extends Model
         'status' => 'draft',
         'published_to_marketplace' => false,
         'currency' => 'USD',
+        'marketplace_status' => 'not_submitted',
     ];
 
     public function category(): BelongsTo

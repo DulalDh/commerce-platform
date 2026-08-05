@@ -5,6 +5,8 @@ namespace App\Modules\Orders\Services;
 use App\Modules\Inventory\Services\InventoryService;
 use App\Modules\Orders\Models\Cart;
 use App\Modules\Orders\Models\Order;
+use App\Modules\Promotions\Services\CouponService;
+use App\Modules\Promotions\Services\PricingRuleEngine;
 use App\Modules\Tenants\Support\TenantContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -15,9 +17,11 @@ class CheckoutService
     public function __construct(
         protected TenantContext $tenantContext,
         protected InventoryService $inventory,
+        protected CouponService $coupons,
+        protected PricingRuleEngine $pricingRules,
     ) {}
 
-    public function checkout(Cart $cart, array $shippingAddress, ?array $billingAddress, int $userId): Order
+    public function checkout(Cart $cart, array $shippingAddress, ?array $billingAddress, int $userId, ?string $couponCode = null): Order
     {
         $cart->loadMissing('items.product', 'items.variant');
 
@@ -25,8 +29,20 @@ class CheckoutService
             throw new InvalidArgumentException('Cannot checkout an empty cart.');
         }
 
-        return DB::transaction(function () use ($cart, $shippingAddress, $billingAddress, $userId) {
+        return DB::transaction(function () use ($cart, $shippingAddress, $billingAddress, $userId, $couponCode) {
             $subtotal = $cart->items->sum(fn ($item) => $item->unit_price * $item->quantity);
+
+            $ruleDiscount = $this->pricingRules->calculateDiscount($cart->items);
+
+            $coupon = null;
+            $couponDiscount = 0.0;
+            if ($couponCode) {
+                $coupon = $this->coupons->validate($couponCode, $subtotal);
+                $couponDiscount = $this->coupons->calculateDiscount($coupon, $subtotal - $ruleDiscount);
+            }
+
+            $discountTotal = round($ruleDiscount + $couponDiscount, 2);
+            $total = max(0, $subtotal - $discountTotal);
 
             $order = Order::create([
                 'tenant_id' => $this->tenantContext->id(),
@@ -34,10 +50,15 @@ class CheckoutService
                 'order_number' => 'ORD-'.strtoupper(Str::random(10)),
                 'status' => 'pending',
                 'subtotal' => $subtotal,
-                'total' => $subtotal,
+                'discount_total' => $discountTotal,
+                'total' => $total,
                 'shipping_address' => $shippingAddress,
                 'billing_address' => $billingAddress,
             ]);
+
+            if ($coupon) {
+                $this->coupons->redeem($coupon);
+            }
 
             foreach ($cart->items as $item) {
                 $order->items()->create([

@@ -36,11 +36,17 @@ class Tenant extends Model
         'kyc_documents' => 'array',
     ];
 
+    /**
+     * @return HasMany<User, $this>
+     */
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
     }
 
+    /**
+     * @return BelongsTo<SubscriptionPlan, $this>
+     */
     public function subscriptionPlan(): BelongsTo
     {
         return $this->belongsTo(SubscriptionPlan::class);
