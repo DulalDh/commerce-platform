@@ -1,32 +1,181 @@
 {
   "info": {
-    "name": "Marketplace API — Phase 0 & 1",
-    "description": "Multi-Tenant SaaS Marketplace Platform backend. Run folders top-to-bottom on a fresh DB (after `php artisan migrate` + the RBAC seeder) and every request should work as-is — each request that creates a resource saves its id into a collection variable that later requests reuse.\n\nSuper Admin endpoints (RBAC folder) need a Super Admin user, which has no self-service registration endpoint by design (Phase 0 seeds the `super-admin` role/permissions but not a user). Create one via tinker, then paste the resulting token into `admin_token`:\n\n```\nphp artisan tinker --execute=\"\n\\$admin = App\\\\Models\\\\User::create(['tenant_id'=>null,'name'=>'Root Admin','email'=>'root@platform.test','password'=>Hash::make('password123')]);\n\\$admin->assignRole(App\\\\Modules\\\\RBAC\\\\Models\\\\Role::withoutGlobalScopes()->where('name','super-admin')->first());\n\"\n```\nThen use the \"Login (Super Admin)\" request in the RBAC folder.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "name": "Marketplace API \u2014 v1.0 (Frozen)",
+    "description": "Multi-Tenant SaaS Marketplace Platform backend \u2014 API contract frozen at v1.0.0 as of the Phase 5 hardening pass (covers Phases 0-4: Foundation, Product Marketplace Core, Platform & Marketplace, Service Marketplace, Unification/Reporting/Comms). See docs/API_CHANGELOG.md for what changed getting here and the freeze policy going forward. Run folders top-to-bottom on a fresh DB (after `php artisan migrate` + the RBAC seeder) and every request should work as-is \u2014 each request that creates a resource saves its id into a collection variable that later requests reuse.\n\nSuper Admin endpoints (RBAC, Super Admin, Marketplace queue, Subscriptions plan management folders) need a Super Admin user, which has no self-service registration endpoint by design (Phase 0 seeds the `super-admin` role/permissions but not a user). Create one via tinker, then paste the resulting token into `admin_token`:\n\n```\nphp artisan tinker --execute=\"\n\\$admin = App\\\\Models\\\\User::create(['tenant_id'=>null,'name'=>'Root Admin','email'=>'root@platform.test','password'=>Hash::make('password123')]);\n\\$admin->assignRole(App\\\\Modules\\\\RBAC\\\\Models\\\\Role::withoutGlobalScopes()->where('name','super-admin')->first());\n\"\n```\nThen use the \"Login (Super Admin)\" request in the RBAC folder.\n\nPhase 2 additions: Super Admin (merchants, dashboard), Marketplace (publish/approve), Subscriptions (plans, subscribe, plan-limit enforcement), Payments expansion (Stripe/PayPal/Nagad/Rocket/Bank Transfer), Shipping (rate calc, shipments, delivery webhook), Promotions (coupons, flash sales, bundle/BOGO rules). Scheduled jobs (dashboard refresh, subscription billing, flash sale activation) only run via `php artisan schedule:work` or manually via tinker \u2014 they won't fire just from hitting the API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
   },
   "auth": {
     "type": "bearer",
-    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
   },
   "variable": [
-    { "key": "base_url", "value": "http://127.0.0.1:8123/api/v1" },
-    { "key": "tenant_subdomain", "value": "acme-{{$randomInt}}" },
-    { "key": "owner_email", "value": "owner-{{$randomInt}}@example.test" },
-    { "key": "owner_password", "value": "password123" },
-    { "key": "token", "value": "" },
-    { "key": "admin_token", "value": "" },
-    { "key": "tenant_id", "value": "" },
-    { "key": "category_id", "value": "" },
-    { "key": "brand_id", "value": "" },
-    { "key": "tag_id", "value": "" },
-    { "key": "product_id", "value": "" },
-    { "key": "variant_id", "value": "" },
-    { "key": "image_id", "value": "" },
-    { "key": "cart_item_id", "value": "" },
-    { "key": "order_id", "value": "" },
-    { "key": "payment_id", "value": "" },
-    { "key": "customer_id", "value": "" },
-    { "key": "role_id", "value": "" }
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8123/api/v1"
+    },
+    {
+      "key": "tenant_subdomain",
+      "value": "acme-example"
+    },
+    {
+      "key": "owner_email",
+      "value": "owner@example.test"
+    },
+    {
+      "key": "owner_password",
+      "value": "password123"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "admin_token",
+      "value": ""
+    },
+    {
+      "key": "tenant_id",
+      "value": ""
+    },
+    {
+      "key": "category_id",
+      "value": ""
+    },
+    {
+      "key": "brand_id",
+      "value": ""
+    },
+    {
+      "key": "tag_id",
+      "value": ""
+    },
+    {
+      "key": "product_id",
+      "value": ""
+    },
+    {
+      "key": "variant_id",
+      "value": ""
+    },
+    {
+      "key": "image_id",
+      "value": ""
+    },
+    {
+      "key": "cart_item_id",
+      "value": ""
+    },
+    {
+      "key": "order_id",
+      "value": ""
+    },
+    {
+      "key": "payment_id",
+      "value": ""
+    },
+    {
+      "key": "customer_id",
+      "value": ""
+    },
+    {
+      "key": "role_id",
+      "value": ""
+    },
+    {
+      "key": "plan_id",
+      "value": ""
+    },
+    {
+      "key": "disposable_plan_id",
+      "value": ""
+    },
+    {
+      "key": "coupon_code",
+      "value": "SAVE20"
+    },
+    {
+      "key": "coupon_id",
+      "value": ""
+    },
+    {
+      "key": "flash_sale_id",
+      "value": ""
+    },
+    {
+      "key": "promotion_rule_id",
+      "value": ""
+    },
+    {
+      "key": "shipment_id",
+      "value": ""
+    },
+    {
+      "key": "merchant_id",
+      "value": ""
+    },
+    {
+      "key": "commission_id",
+      "value": ""
+    },
+    {
+      "key": "service_category_id",
+      "value": ""
+    },
+    {
+      "key": "service_id",
+      "value": ""
+    },
+    {
+      "key": "staff_id",
+      "value": ""
+    },
+    {
+      "key": "staff_leave_id",
+      "value": ""
+    },
+    {
+      "key": "vehicle_id",
+      "value": ""
+    },
+    {
+      "key": "booking_id",
+      "value": ""
+    },
+    {
+      "key": "holiday_id",
+      "value": ""
+    },
+    {
+      "key": "review_id",
+      "value": ""
+    },
+    {
+      "key": "notification_id",
+      "value": ""
+    },
+    {
+      "key": "notification_template_id",
+      "value": ""
+    },
+    {
+      "key": "page_id",
+      "value": ""
+    },
+    {
+      "key": "blog_post_id",
+      "value": ""
+    },
+    {
+      "key": "faq_id",
+      "value": ""
+    }
   ],
   "item": [
     {
@@ -35,6 +184,19 @@
         {
           "name": "Register Tenant (creates tenant + owner user)",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Freeze these once per run - {{$randomInt}} inside a collection",
+                  "// variable's stored default value re-evaluates on every reference,",
+                  "// so Register Tenant and Login (Tenant Owner) would otherwise each",
+                  "// generate a different random email/subdomain and never match.",
+                  "pm.collectionVariables.set('owner_email', 'owner-' + Math.floor(Math.random() * 1e9) + '@example.test');",
+                  "pm.collectionVariables.set('tenant_subdomain', 'acme-' + Math.floor(Math.random() * 1e9));"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -48,67 +210,27 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/tenants", "host": ["{{base_url}}"], "path": ["tenants"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tenants",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tenants"
+              ]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Acme Co\",\n  \"type\": \"merchant\",\n  \"subdomain\": \"{{tenant_subdomain}}\",\n  \"owner_name\": \"Alice Owner\",\n  \"owner_email\": \"{{owner_email}}\",\n  \"owner_password\": \"{{owner_password}}\"\n}"
             }
           }
         },
-        {
-          "name": "Store Status",
-          "request": {
-            "method": "GET",
-            "url": { "raw": "{{base_url}}/store/status", "host": ["{{base_url}}"], "path": ["store", "status"] }
-          }
-        },
-        {
-          "name": "Update Store Profile",
-          "request": {
-            "method": "PUT",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/store/profile", "host": ["{{base_url}}"], "path": ["store", "profile"] },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"description\": \"We sell fine goods.\",\n  \"contact_email\": \"hello@acme.test\",\n  \"address\": {\n    \"line1\": \"1 Main St\",\n    \"city\": \"Dhaka\",\n    \"country\": \"Bangladesh\"\n  }\n}"
-            }
-          }
-        },
-        {
-          "name": "Update Store Theme (logo/banner upload)",
-          "request": {
-            "method": "PUT",
-            "url": { "raw": "{{base_url}}/store/theme-basic", "host": ["{{base_url}}"], "path": ["store", "theme-basic"] },
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                { "key": "theme_color", "value": "#3366FF", "type": "text" },
-                { "key": "logo", "type": "file", "src": [], "disabled": true },
-                { "key": "banner", "type": "file", "src": [], "disabled": true }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Upload KYC Document",
-          "request": {
-            "method": "POST",
-            "url": { "raw": "{{base_url}}/store/kyc-documents", "host": ["{{base_url}}"], "path": ["store", "kyc-documents"] },
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                { "key": "type", "value": "business_license", "type": "text" },
-                { "key": "document", "type": "file", "src": [] }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "2. Auth",
-      "item": [
         {
           "name": "Login (Tenant Owner)",
           "event": [
@@ -125,8 +247,22 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{owner_email}}\",\n  \"password\": \"{{owner_password}}\"\n}"
@@ -134,11 +270,141 @@
           }
         },
         {
+          "name": "Store Status",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/store/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "store",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Store Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/store/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "store",
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"We sell fine goods.\",\n  \"contact_email\": \"hello@acme.test\",\n  \"address\": {\n    \"line1\": \"1 Main St\",\n    \"city\": \"Dhaka\",\n    \"country\": \"Bangladesh\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Store Theme (logo/banner upload)",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/store/theme-basic",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "store",
+                "theme-basic"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "theme_color",
+                  "value": "#3366FF",
+                  "type": "text"
+                },
+                {
+                  "key": "logo",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "banner",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload KYC Document",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/store/kyc-documents",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "store",
+                "kyc-documents"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "type",
+                  "value": "business_license",
+                  "type": "text"
+                },
+                {
+                  "key": "document",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Auth",
+      "item": [
+        {
           "name": "Register (standalone customer/user)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Sam Customer\",\n  \"email\": \"sam-{{$randomInt}}@example.test\",\n  \"password\": \"password123\"\n}"
@@ -149,14 +415,47 @@
           "name": "Refresh Token",
           "request": {
             "method": "POST",
-            "url": { "raw": "{{base_url}}/auth/refresh", "host": ["{{base_url}}"], "path": ["auth", "refresh"] }
-          }
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// refresh revokes the old token and issues a new one - update",
+                  "// {{token}} or every later request in the collection 401s.",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('token', body.data.token);"
+                ]
+              }
+            }
+          ]
         },
         {
-          "name": "Logout",
+          "name": "Social Login (Google/Facebook) \u2014 open in browser, not Postman",
           "request": {
-            "method": "POST",
-            "url": { "raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth", "logout"] }
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/auth/social/google",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "social",
+                "google"
+              ]
+            },
+            "description": "POST /auth/social/{provider} redirects to the OAuth provider, and GET /auth/social/{provider}/callback is hit by that provider's redirect - both are browser-driven Socialite flows, not request/response calls Postman can complete on their own. Listed here for API-surface completeness only; test by visiting the URL in a browser with a real Google/Facebook OAuth app configured."
           }
         }
       ]
@@ -172,36 +471,92 @@
               "event": [
                 {
                   "listen": "test",
-                  "script": { "exec": ["pm.collectionVariables.set('category_id', pm.response.json().data.id);"] }
+                  "script": {
+                    "exec": [
+                      "pm.collectionVariables.set('category_id', pm.response.json().data.id);"
+                    ]
+                  }
                 }
               ],
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "url": { "raw": "{{base_url}}/categories", "host": ["{{base_url}}"], "path": ["categories"] },
-                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Electronics\",\n  \"slug\": \"electronics-{{$randomInt}}\"\n}" }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/categories",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "categories"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Electronics\",\n  \"slug\": \"electronics-{{$randomInt}}\"\n}"
+                }
               }
             },
             {
               "name": "List Categories",
-              "request": { "method": "GET", "url": { "raw": "{{base_url}}/categories", "host": ["{{base_url}}"], "path": ["categories"] } }
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/categories",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "categories"
+                  ]
+                }
+              }
             },
             {
               "name": "Get Category",
-              "request": { "method": "GET", "url": { "raw": "{{base_url}}/categories/{{category_id}}", "host": ["{{base_url}}"], "path": ["categories", "{{category_id}}"] } }
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/categories/{{category_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "categories",
+                    "{{category_id}}"
+                  ]
+                }
+              }
             },
             {
               "name": "Update Category",
               "request": {
                 "method": "PUT",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "url": { "raw": "{{base_url}}/categories/{{category_id}}", "host": ["{{base_url}}"], "path": ["categories", "{{category_id}}"] },
-                "body": { "mode": "raw", "raw": "{\n  \"description\": \"Gadgets and gizmos\"\n}" }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/categories/{{category_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "categories",
+                    "{{category_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"description\": \"Gadgets and gizmos\"\n}"
+                }
               }
-            },
-            {
-              "name": "Delete Category",
-              "request": { "method": "DELETE", "url": { "raw": "{{base_url}}/categories/{{category_id}}", "host": ["{{base_url}}"], "path": ["categories", "{{category_id}}"] } }
             }
           ]
         },
@@ -211,31 +566,94 @@
             {
               "name": "Create Brand",
               "event": [
-                { "listen": "test", "script": { "exec": ["pm.collectionVariables.set('brand_id', pm.response.json().data.id);"] } }
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.collectionVariables.set('brand_id', pm.response.json().data.id);"
+                    ]
+                  }
+                }
               ],
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "url": { "raw": "{{base_url}}/brands", "host": ["{{base_url}}"], "path": ["brands"] },
-                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Acme Brand\",\n  \"slug\": \"acme-brand-{{$randomInt}}\"\n}" }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/brands",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "brands"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Acme Brand\",\n  \"slug\": \"acme-brand-{{$randomInt}}\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Get Brand",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/brands/{{brand_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "brands",
+                    "{{brand_id}}"
+                  ]
+                }
               }
             },
             {
               "name": "List Brands",
-              "request": { "method": "GET", "url": { "raw": "{{base_url}}/brands", "host": ["{{base_url}}"], "path": ["brands"] } }
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/brands",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "brands"
+                  ]
+                }
+              }
             },
             {
               "name": "Update Brand",
               "request": {
                 "method": "PUT",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "url": { "raw": "{{base_url}}/brands/{{brand_id}}", "host": ["{{base_url}}"], "path": ["brands", "{{brand_id}}"] },
-                "body": { "mode": "raw", "raw": "{\n  \"is_active\": true\n}" }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/brands/{{brand_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "brands",
+                    "{{brand_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"is_active\": true\n}"
+                }
               }
-            },
-            {
-              "name": "Delete Brand",
-              "request": { "method": "DELETE", "url": { "raw": "{{base_url}}/brands/{{brand_id}}", "host": ["{{base_url}}"], "path": ["brands", "{{brand_id}}"] } }
             }
           ]
         },
@@ -245,22 +663,94 @@
             {
               "name": "Create Tag",
               "event": [
-                { "listen": "test", "script": { "exec": ["pm.collectionVariables.set('tag_id', pm.response.json().data.id);"] } }
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.collectionVariables.set('tag_id', pm.response.json().data.id);"
+                    ]
+                  }
+                }
               ],
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "url": { "raw": "{{base_url}}/tags", "host": ["{{base_url}}"], "path": ["tags"] },
-                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Sale\",\n  \"slug\": \"sale-{{$randomInt}}\"\n}" }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/tags",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tags"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Sale\",\n  \"slug\": \"sale-{{$randomInt}}\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Get Tag",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/tags/{{tag_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tags",
+                    "{{tag_id}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Tag",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/tags/{{tag_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tags",
+                    "{{tag_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Bestseller\"\n}"
+                }
               }
             },
             {
               "name": "List Tags",
-              "request": { "method": "GET", "url": { "raw": "{{base_url}}/tags", "host": ["{{base_url}}"], "path": ["tags"] } }
-            },
-            {
-              "name": "Delete Tag",
-              "request": { "method": "DELETE", "url": { "raw": "{{base_url}}/tags/{{tag_id}}", "host": ["{{base_url}}"], "path": ["tags", "{{tag_id}}"] } }
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/tags",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tags"
+                  ]
+                }
+              }
             }
           ]
         },
@@ -285,8 +775,21 @@
               ],
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "url": { "raw": "{{base_url}}/products", "host": ["{{base_url}}"], "path": ["products"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/products",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "products"
+                  ]
+                },
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"T-Shirt\",\n  \"slug\": \"t-shirt-{{$randomInt}}\",\n  \"price\": 19.99,\n  \"category_id\": \"{{category_id}}\",\n  \"brand_id\": \"{{brand_id}}\",\n  \"tag_ids\": [\"{{tag_id}}\"],\n  \"status\": \"published\",\n  \"variants\": [\n    { \"name\": \"Red / L\", \"price\": 21.99, \"attributes\": { \"color\": \"red\", \"size\": \"L\" } }\n  ]\n}"
@@ -295,61 +798,190 @@
             },
             {
               "name": "List Products",
-              "request": { "method": "GET", "url": { "raw": "{{base_url}}/products", "host": ["{{base_url}}"], "path": ["products"] } }
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/products",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "products"
+                  ]
+                }
+              }
             },
             {
               "name": "Get Product",
-              "request": { "method": "GET", "url": { "raw": "{{base_url}}/products/{{product_id}}", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}"] } }
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/products/{{product_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "products",
+                    "{{product_id}}"
+                  ]
+                }
+              }
             },
             {
               "name": "Update Product",
               "request": {
                 "method": "PUT",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "url": { "raw": "{{base_url}}/products/{{product_id}}", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}"] },
-                "body": { "mode": "raw", "raw": "{\n  \"price\": 17.99\n}" }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/products/{{product_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "products",
+                    "{{product_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"price\": 17.99\n}"
+                }
               }
             },
             {
               "name": "Upload Product Image",
               "event": [
-                { "listen": "test", "script": { "exec": ["pm.collectionVariables.set('image_id', pm.response.json().data.id);"] } }
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "if (body.data && body.data.id) { pm.collectionVariables.set('image_id', body.data.id); }"
+                    ]
+                  }
+                }
               ],
               "request": {
                 "method": "POST",
-                "url": { "raw": "{{base_url}}/products/{{product_id}}/images", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}", "images"] },
-                "body": { "mode": "formdata", "formdata": [{ "key": "image", "type": "file", "src": [] }] }
+                "url": {
+                  "raw": "{{base_url}}/products/{{product_id}}/images",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "products",
+                    "{{product_id}}",
+                    "images"
+                  ]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "image",
+                      "type": "file",
+                      "src": []
+                    }
+                  ]
+                }
               }
             },
             {
               "name": "Delete Product Image",
               "request": {
                 "method": "DELETE",
-                "url": { "raw": "{{base_url}}/products/{{product_id}}/images/{{image_id}}", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}", "images", "{{image_id}}"] }
+                "url": {
+                  "raw": "{{base_url}}/products/{{product_id}}/images/{{image_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "products",
+                    "{{product_id}}",
+                    "images",
+                    "{{image_id}}"
+                  ]
+                }
               }
             },
             {
               "name": "Add Product Variant",
               "event": [
-                { "listen": "test", "script": { "exec": ["pm.collectionVariables.set('variant_id', pm.response.json().data.id);"] } }
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.collectionVariables.set('variant_id', pm.response.json().data.id);"
+                    ]
+                  }
+                }
               ],
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "url": { "raw": "{{base_url}}/products/{{product_id}}/variants", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}", "variants"] },
-                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Blue / M\",\n  \"price\": 20.99,\n  \"attributes\": { \"color\": \"blue\", \"size\": \"M\" }\n}" }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/products/{{product_id}}/variants",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "products",
+                    "{{product_id}}",
+                    "variants"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Blue / M\",\n  \"price\": 20.99,\n  \"attributes\": { \"color\": \"blue\", \"size\": \"M\" }\n}"
+                }
               }
-            },
+            }
+          ]
+        },
+        {
+          "name": "Cleanup (run after Products - these rows are used as FKs above)",
+          "item": [
             {
-              "name": "Delete Product Variant",
+              "name": "Delete Category",
               "request": {
                 "method": "DELETE",
-                "url": { "raw": "{{base_url}}/products/{{product_id}}/variants/{{variant_id}}", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}", "variants", "{{variant_id}}"] }
+                "url": {
+                  "raw": "{{base_url}}/categories/{{category_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "categories",
+                    "{{category_id}}"
+                  ]
+                }
               }
             },
             {
-              "name": "Delete Product",
-              "request": { "method": "DELETE", "url": { "raw": "{{base_url}}/products/{{product_id}}", "host": ["{{base_url}}"], "path": ["products", "{{product_id}}"] } }
+              "name": "Delete Brand",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{base_url}}/brands/{{brand_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "brands",
+                    "{{brand_id}}"
+                  ]
+                }
+              }
             }
           ]
         }
@@ -362,36 +994,104 @@
           "name": "Stock In",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/inventory/stock-in", "host": ["{{base_url}}"], "path": ["inventory", "stock-in"] },
-            "body": { "mode": "raw", "raw": "{\n  \"product_id\": \"{{product_id}}\",\n  \"quantity\": 100,\n  \"notes\": \"Initial stock\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/stock-in",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "stock-in"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"{{product_id}}\",\n  \"quantity\": 100,\n  \"notes\": \"Initial stock\"\n}"
+            }
           }
         },
         {
           "name": "Stock Out",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/inventory/stock-out", "host": ["{{base_url}}"], "path": ["inventory", "stock-out"] },
-            "body": { "mode": "raw", "raw": "{\n  \"product_id\": \"{{product_id}}\",\n  \"quantity\": 5,\n  \"notes\": \"Damaged/removed\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/stock-out",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "stock-out"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"{{product_id}}\",\n  \"quantity\": 5,\n  \"notes\": \"Damaged/removed\"\n}"
+            }
           }
         },
         {
           "name": "Adjustment",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/inventory/adjustment", "host": ["{{base_url}}"], "path": ["inventory", "adjustment"] },
-            "body": { "mode": "raw", "raw": "{\n  \"product_id\": \"{{product_id}}\",\n  \"delta\": -2,\n  \"notes\": \"Stock count correction\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/adjustment",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "adjustment"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"{{product_id}}\",\n  \"delta\": -2,\n  \"notes\": \"Stock count correction\"\n}"
+            }
           }
         },
         {
           "name": "Transfer",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/inventory/transfer", "host": ["{{base_url}}"], "path": ["inventory", "transfer"] },
-            "body": { "mode": "raw", "raw": "{\n  \"from_product_id\": \"{{product_id}}\",\n  \"to_product_id\": \"{{product_id}}\",\n  \"to_variant_id\": \"{{variant_id}}\",\n  \"quantity\": 1,\n  \"notes\": \"Reallocate to variant\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/transfer",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "transfer"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_product_id\": \"{{product_id}}\",\n  \"to_product_id\": \"{{product_id}}\",\n  \"to_variant_id\": \"{{variant_id}}\",\n  \"quantity\": 1,\n  \"notes\": \"Reallocate to variant\"\n}"
+            }
           }
         }
       ]
@@ -401,7 +1101,18 @@
       "item": [
         {
           "name": "Get Cart",
-          "request": { "method": "GET", "url": { "raw": "{{base_url}}/cart", "host": ["{{base_url}}"], "path": ["cart"] } }
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/cart",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cart"
+              ]
+            }
+          }
         },
         {
           "name": "Add to Cart",
@@ -418,58 +1129,165 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/cart", "host": ["{{base_url}}"], "path": ["cart"] },
-            "body": { "mode": "raw", "raw": "{\n  \"product_id\": \"{{product_id}}\",\n  \"quantity\": 1\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cart",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cart"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"{{product_id}}\",\n  \"quantity\": 1\n}"
+            }
           }
         },
         {
           "name": "Update Cart Item Quantity",
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/cart/items/{{cart_item_id}}", "host": ["{{base_url}}"], "path": ["cart", "items", "{{cart_item_id}}"] },
-            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 2\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cart/items/{{cart_item_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cart",
+                "items",
+                "{{cart_item_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Checkout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('order_id', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/checkout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "checkout"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shipping_address\": {\n    \"line1\": \"1 Main St\",\n    \"city\": \"Dhaka\",\n    \"country\": \"Bangladesh\"\n  }\n}"
+            },
+            "description": "No coupon_code by default - Promotions > Coupons runs later in the collection, so a coupon wouldn't exist yet at this point in a full top-to-bottom run. To test a coupon discount, run Create Coupon first, then add \"coupon_code\": \"{{coupon_code}}\" to this body. Bundle/BOGO promotion rules and any active flash sale pricing apply automatically, no field needed for those."
+          }
+        },
+        {
+          "name": "List Orders",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Order",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/orders/{{order_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "orders",
+                "{{order_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Order Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/{{order_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "orders",
+                "{{order_id}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"processing\",\n  \"note\": \"Preparing shipment\"\n}"
+            },
+            "description": "Guarded state machine: pending\u2192confirmed\u2192processing\u2192shipped\u2192delivered\u2192(returned|refunded|exchanged), or cancelled from pending/confirmed/processing. If checkout hasn't been paid yet (status still pending), use 'confirmed' first \u2014 see the Payments folder to auto-confirm via COD instead."
           }
         },
         {
           "name": "Remove Cart Item",
           "request": {
             "method": "DELETE",
-            "url": { "raw": "{{base_url}}/cart/items/{{cart_item_id}}", "host": ["{{base_url}}"], "path": ["cart", "items", "{{cart_item_id}}"] }
-          }
-        },
-        {
-          "name": "Checkout",
-          "event": [
-            { "listen": "test", "script": { "exec": ["pm.collectionVariables.set('order_id', pm.response.json().data.id);"] } }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/checkout", "host": ["{{base_url}}"], "path": ["checkout"] },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"shipping_address\": {\n    \"line1\": \"1 Main St\",\n    \"city\": \"Dhaka\",\n    \"country\": \"Bangladesh\"\n  }\n}"
-            }
-          }
-        },
-        {
-          "name": "List Orders",
-          "request": { "method": "GET", "url": { "raw": "{{base_url}}/orders", "host": ["{{base_url}}"], "path": ["orders"] } }
-        },
-        {
-          "name": "Get Order",
-          "request": { "method": "GET", "url": { "raw": "{{base_url}}/orders/{{order_id}}", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}"] } }
-        },
-        {
-          "name": "Update Order Status",
-          "request": {
-            "method": "PUT",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/orders/{{order_id}}/status", "host": ["{{base_url}}"], "path": ["orders", "{{order_id}}", "status"] },
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"processing\",\n  \"note\": \"Preparing shipment\"\n}" },
-            "description": "Guarded state machine: pending→confirmed→processing→shipped→delivered→(returned|refunded|exchanged), or cancelled from pending/confirmed/processing. If checkout hasn't been paid yet (status still pending), use 'confirmed' first — see the Payments folder to auto-confirm via COD instead."
+            "url": {
+              "raw": "{{base_url}}/cart/items/{{cart_item_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cart",
+                "items",
+                "{{cart_item_id}}"
+              ]
+            },
+            "description": "Moved after Checkout deliberately - removing the cart item before Checkout would leave the cart empty and Checkout would 422 with 'Cannot checkout an empty cart.'. By this point checkout has already consumed the cart, so this demonstrates removing an item from a new, now-empty cart instead (still a valid call, just an empty result)."
           }
         }
       ]
@@ -478,42 +1296,272 @@
       "name": "6. Payments",
       "item": [
         {
-          "name": "Initiate Payment (COD — auto-completes, confirms order)",
+          "name": "Initiate Payment (COD \u2014 auto-completes, confirms order)",
           "event": [
-            { "listen": "test", "script": { "exec": ["pm.collectionVariables.set('payment_id', pm.response.json().data.payment_id);"] } }
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('payment_id', pm.response.json().data.payment_id);"
+                ]
+              }
+            }
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/payments/initiate", "host": ["{{base_url}}"], "path": ["payments", "initiate"] },
-            "body": { "mode": "raw", "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"gateway\": \"cod\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payments/initiate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments",
+                "initiate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"gateway\": \"cod\"\n}"
+            }
           }
         },
         {
-          "name": "Initiate Payment (SSLCommerz — returns redirect_url)",
+          "name": "Initiate Payment (SSLCommerz \u2014 returns redirect_url)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/payments/initiate", "host": ["{{base_url}}"], "path": ["payments", "initiate"] },
-            "body": { "mode": "raw", "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"gateway\": \"sslcommerz\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payments/initiate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments",
+                "initiate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"gateway\": \"sslcommerz\"\n}"
+            }
           }
         },
         {
-          "name": "Initiate Payment (bKash — returns redirect_url)",
+          "name": "Initiate Payment (bKash \u2014 returns redirect_url)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/payments/initiate", "host": ["{{base_url}}"], "path": ["payments", "initiate"] },
-            "body": { "mode": "raw", "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"gateway\": \"bkash\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payments/initiate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments",
+                "initiate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"gateway\": \"bkash\"\n}"
+            }
           }
         },
         {
-          "name": "Webhook (sslcommerz) — NOT directly callable from here",
+          "name": "Initiate Payment (Stripe \u2014 returns redirect_url)",
           "request": {
             "method": "POST",
-            "url": { "raw": "{{base_url}}/payments/webhook/sslcommerz", "host": ["{{base_url}}"], "path": ["payments", "webhook", "sslcommerz"] },
-            "body": { "mode": "raw", "raw": "{}" },
-            "description": "This will 422 as-is: the gateway signs webhook bodies with an HMAC-SHA256 signature (X-Signature header) computed against config('services.sslcommerz.store_password'), which Postman can't compute inline. To exercise this path, use the automated test in tests/Feature/PaymentWebhookIdempotencyTest.php, which builds a correctly-signed request."
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payments/initiate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments",
+                "initiate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"gateway\": \"stripe\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Initiate Payment (PayPal \u2014 returns redirect_url)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payments/initiate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments",
+                "initiate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"gateway\": \"paypal\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Initiate Payment (Nagad \u2014 returns redirect_url)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payments/initiate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments",
+                "initiate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"gateway\": \"nagad\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Initiate Payment (Rocket \u2014 returns redirect_url)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payments/initiate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments",
+                "initiate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"gateway\": \"rocket\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Initiate Payment (Bank Transfer \u2014 stays pending until confirmed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('payment_id', pm.response.json().data.payment_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payments/initiate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments",
+                "initiate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\",\n  \"gateway\": \"bank_transfer\"\n}"
+            },
+            "description": "Response includes bank_details for the customer to wire funds to. No webhook exists for this gateway - use 'Confirm Bank Transfer Payment' below (staff action, after checking the bank statement) to mark it completed and confirm the order."
+          }
+        },
+        {
+          "name": "Confirm Bank Transfer Payment (manual, staff action)",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/payments/{{payment_id}}/confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments",
+                "{{payment_id}}",
+                "confirm"
+              ]
+            },
+            "description": "Only works for gateway: bank_transfer payments still in 'pending' status. Marks the payment completed and confirms the order, mirroring what a webhook would do for other gateways."
+          }
+        },
+        {
+          "name": "Webhook (sslcommerz) \u2014 NOT directly callable from here",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/payments/webhook/sslcommerz",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments",
+                "webhook",
+                "sslcommerz"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "description": "This will 422 as-is: the gateway signs webhook bodies with an HMAC-SHA256 signature (X-Signature header) computed against config('services.sslcommerz.store_password'), which Postman can't compute inline. To exercise this path, use the automated test in tests/Feature/PaymentWebhookIdempotencyTest.php, which builds a correctly-signed request. The same applies to bkash, stripe, paypal, nagad, and rocket webhooks - each signs against its own config secret."
           }
         }
       ]
@@ -534,32 +1582,168 @@
               }
             }
           ],
-          "request": { "method": "GET", "url": { "raw": "{{base_url}}/customers", "host": ["{{base_url}}"], "path": ["customers"] } }
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/customers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "customers"
+              ]
+            }
+          }
         },
         {
           "name": "Get Customer",
-          "request": { "method": "GET", "url": { "raw": "{{base_url}}/customers/{{customer_id}}", "host": ["{{base_url}}"], "path": ["customers", "{{customer_id}}"] } }
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/customers/{{customer_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "customers",
+                "{{customer_id}}"
+              ]
+            }
+          }
         },
         {
           "name": "Add Customer Note",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/customers/{{customer_id}}/notes", "host": ["{{base_url}}"], "path": ["customers", "{{customer_id}}", "notes"] },
-            "body": { "mode": "raw", "raw": "{\n  \"note\": \"VIP customer, handle with care\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/customers/{{customer_id}}/notes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "customers",
+                "{{customer_id}}",
+                "notes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"VIP customer, handle with care\"\n}"
+            }
           }
         },
         {
           "name": "List Customer Notes",
-          "request": { "method": "GET", "url": { "raw": "{{base_url}}/customers/{{customer_id}}/notes", "host": ["{{base_url}}"], "path": ["customers", "{{customer_id}}", "notes"] } }
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/customers/{{customer_id}}/notes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "customers",
+                "{{customer_id}}",
+                "notes"
+              ]
+            }
+          }
         },
         {
           "name": "Sync Customer Tags",
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/customers/{{customer_id}}/tags", "host": ["{{base_url}}"], "path": ["customers", "{{customer_id}}", "tags"] },
-            "body": { "mode": "raw", "raw": "{\n  \"tag_ids\": [\"{{tag_id}}\"]\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/customers/{{customer_id}}/tags",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "customers",
+                "{{customer_id}}",
+                "tags"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tag_ids\": [\"{{tag_id}}\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Account Orders",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/account/orders",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "account",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Account Bookings",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/account/bookings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "account",
+                "bookings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Account Wallet",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/account/wallet",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "account",
+                "wallet"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Account Loyalty",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/account/loyalty",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "account",
+                "loyalty"
+              ]
+            }
           }
         }
       ]
@@ -582,49 +1766,2755 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"root@platform.test\",\n  \"password\": \"password123\"\n}" },
-            "description": "Requires a Super Admin user to already exist — see the collection-level description for the tinker command to create one."
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"root@platform.test\",\n  \"password\": \"password123\"\n}"
+            },
+            "description": "Requires a Super Admin user to already exist \u2014 see the collection-level description for the tinker command to create one."
           }
         },
         {
           "name": "List Roles",
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "url": { "raw": "{{base_url}}/roles", "host": ["{{base_url}}"], "path": ["roles"] }
+            "url": {
+              "raw": "{{base_url}}/roles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roles"
+              ]
+            }
           }
         },
         {
           "name": "Create Role",
           "event": [
-            { "listen": "test", "script": { "exec": ["pm.collectionVariables.set('role_id', pm.response.json().data.id);"] } }
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('role_id', pm.response.json().data.id);"
+                ]
+              }
+            }
           ],
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/roles", "host": ["{{base_url}}"], "path": ["roles"] },
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"support-staff\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/roles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roles"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"support-staff\"\n}"
+            }
           }
         },
         {
           "name": "List Permissions",
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "url": { "raw": "{{base_url}}/permissions", "host": ["{{base_url}}"], "path": ["permissions"] }
+            "url": {
+              "raw": "{{base_url}}/permissions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "permissions"
+              ]
+            }
           }
         },
         {
           "name": "Create Permission",
           "request": {
-            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{base_url}}/permissions", "host": ["{{base_url}}"], "path": ["permissions"] },
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"manage-refunds\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/permissions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "permissions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"manage-refunds\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Super Admin",
+      "item": [
+        {
+          "name": "List Merchants",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const items = pm.response.json().data;",
+                  "if (items && items.length) { pm.collectionVariables.set('merchant_id', items[0].id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/merchants",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "merchants"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve Merchant",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/admin/merchants/{{merchant_id}}/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "merchants",
+                "{{merchant_id}}",
+                "approve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Suspend Merchant",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/admin/merchants/{{merchant_id}}/suspend",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "merchants",
+                "{{merchant_id}}",
+                "suspend"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dashboard Stats (cached, refreshed hourly)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "dashboard"
+              ]
+            },
+            "description": "Served from cache (Cache key: admin.dashboard); computes synchronously on first call if the hourly RefreshDashboardStatsJob hasn't run yet."
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Marketplace",
+      "item": [
+        {
+          "name": "Search Marketplace",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/search?q=cleaning&type=service&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "cleaning"
+                },
+                {
+                  "key": "type",
+                  "value": "service"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Publish Product to Marketplace (tenant)",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/products/{{product_id}}/publish-to-marketplace",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "products",
+                "{{product_id}}",
+                "publish-to-marketplace"
+              ]
+            },
+            "description": "Sets marketplace_status to 'pending' - awaits Super Admin review below before published_to_marketplace becomes true."
+          }
+        },
+        {
+          "name": "List Marketplace Queue (Super Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/marketplace/queue",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "marketplace",
+                "queue"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve Marketplace Listing (Super Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/admin/marketplace/queue/{{product_id}}/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "marketplace",
+                "queue",
+                "{{product_id}}",
+                "approve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reject Marketplace Listing (Super Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/marketplace/queue/{{product_id}}/reject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "marketplace",
+                "queue",
+                "{{product_id}}",
+                "reject"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Product images do not meet marketplace guidelines.\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Subscriptions",
+      "item": [
+        {
+          "name": "List Plans (public)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/plans",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "plans"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Plan (public)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/plans/{{plan_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "plans",
+                "{{plan_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Plan (Super Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('plan_id', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/plans",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "plans"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Starter\",\n  \"slug\": \"starter-{{$randomInt}}\",\n  \"price\": 9.99,\n  \"limits\": {\n    \"products\": 50,\n    \"staff\": 5\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Plan (Super Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/plans/{{plan_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "plans",
+                "{{plan_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 12.99\n}"
+            }
+          }
+        },
+        {
+          "name": "Subscribe (tenant)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/subscriptions/subscribe",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "subscriptions",
+                "subscribe"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan_id\": \"{{plan_id}}\"\n}"
+            },
+            "description": "Replaces any existing active subscription. If the new plan's limits (e.g. products) are lower than current usage, further creation of that resource is blocked immediately - see plan.limit middleware on POST /products."
+          }
+        },
+        {
+          "name": "Current Subscription (tenant)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/subscriptions/current",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "subscriptions",
+                "current"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Plan (Super Admin)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/plans/{{disposable_plan_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "plans",
+                "{{disposable_plan_id}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Deletes a throwaway plan created by this request's own pre-request script, not {{plan_id}} - that one is actively referenced by the Subscribe call earlier in this folder, and deleting a plan with a live subscription 500s on a foreign key violation rather than a clean 4xx (a real API gap worth knowing about, not a Postman issue)."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// {{plan_id}} is actively subscribed to by this point (Subscribe",
+                  "// ran earlier in this folder) - deleting it would 500 on a FK",
+                  "// violation from the subscriptions table. Create a disposable,",
+                  "// never-subscribed plan just for this demo instead.",
+                  "const req = {",
+                  "  url: pm.collectionVariables.get('base_url') + '/plans',",
+                  "  method: 'POST',",
+                  "  header: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + pm.collectionVariables.get('admin_token') },",
+                  "  body: { mode: 'raw', raw: JSON.stringify({ name: 'Disposable', slug: 'disposable-' + Date.now(), price: 1 }) }",
+                  "};",
+                  "pm.sendRequest(req, (err, res) => {",
+                  "  if (!err && res.code === 201) {",
+                  "    pm.collectionVariables.set('disposable_plan_id', res.json().data.id);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "12. Shipping",
+      "item": [
+        {
+          "name": "Calculate Rate (public, no auth)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/shipping/rate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shipping",
+                "rate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"pathao\",\n  \"origin\": \"Dhaka\",\n  \"destination\": \"Chittagong\",\n  \"weight_kg\": 2.5\n}"
+            },
+            "description": "provider can be pathao, steadfast, redx, or sundarban - each has a different base rate/eta."
+          }
+        },
+        {
+          "name": "Create Shipment for Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('shipment_id', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/{{order_id}}/shipments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "orders",
+                "{{order_id}}",
+                "shipments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"pathao\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Webhook (pathao) \u2014 NOT directly callable from here",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/shipping/webhook/pathao",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "shipping",
+                "webhook",
+                "pathao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "description": "Same signed-webhook limitation as Payments - couriers sign callbacks with an HMAC-SHA256 signature (X-Signature) against each provider's own config secret, which Postman can't compute inline. When a webhook reports 'delivered', the order auto-transitions shipped -> delivered."
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Promotions",
+      "item": [
+        {
+          "name": "Coupons",
+          "item": [
+            {
+              "name": "Create Coupon",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/coupons",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coupons"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"{{coupon_code}}\",\n  \"type\": \"percentage\",\n  \"value\": 20,\n  \"max_discount\": 5\n}"
+                },
+                "description": "type is 'percentage' or 'fixed'. Referenced by {{coupon_code}} in the Orders > Checkout request."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.collectionVariables.set('coupon_id', pm.response.json().data.id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "List Coupons",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/coupons",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coupons"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Coupon",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/coupons/{{coupon_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coupons",
+                    "{{coupon_id}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Coupon",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/coupons/{{coupon_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coupons",
+                    "{{coupon_id}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"value\": 25\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete Coupon",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{base_url}}/coupons/{{coupon_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coupons",
+                    "{{coupon_id}}"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Flash Sales",
+          "item": [
+            {
+              "name": "Create Flash Sale (starts now, 50% off)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "pm.collectionVariables.set('flash_sale_ends_at', new Date(Date.now() + 3600000).toISOString());"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.collectionVariables.set('flash_sale_id', pm.response.json().data.id);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/flash-sales",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "flash-sales"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Flash Deal\",\n  \"discount_percentage\": 50,\n  \"starts_at\": \"{{$isoTimestamp}}\",\n  \"ends_at\": \"{{flash_sale_ends_at}}\",\n  \"product_ids\": [\"{{product_id}}\"]\n}"
+                },
+                "description": "starts_at is 'now' via Postman's {{$isoTimestamp}}; ends_at is set by this request's pre-request script to +1 hour, since the API requires ends_at to be strictly after starts_at and both resolving to the same instant (as two separate {{$isoTimestamp}} calls would) fails validation. New sales start in 'scheduled' status; the ActivateFlashSalesJob (every 5 min) flips it to 'active' once starts_at has passed, which is when CartService starts applying the discount."
+              }
+            },
+            {
+              "name": "Get Flash Sale",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/flash-sales/{{flash_sale_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "flash-sales",
+                    "{{flash_sale_id}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List Flash Sales",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/flash-sales",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "flash-sales"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Flash Sale",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{base_url}}/flash-sales/{{flash_sale_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "flash-sales",
+                    "{{flash_sale_id}}"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Promotion Rules (Bundle / BOGO)",
+          "item": [
+            {
+              "name": "Create BOGO Rule",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.collectionVariables.set('promotion_rule_id', pm.response.json().data.id);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/promotion-rules",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "promotion-rules"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Buy One Get One Free\",\n  \"type\": \"bogo\",\n  \"config\": {\n    \"buy_product_id\": \"{{product_id}}\",\n    \"get_product_id\": \"{{product_id}}\",\n    \"buy_qty\": 1,\n    \"get_qty\": 1,\n    \"get_discount_percentage\": 100\n  }\n}"
+                },
+                "description": "buy_product_id and get_product_id are usually different products - set to the same one here only as a placeholder since the collection only tracks one {{product_id}}. Applied automatically at checkout, no coupon code needed."
+              }
+            },
+            {
+              "name": "Create Bundle Rule",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/promotion-rules",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "promotion-rules"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Starter Bundle\",\n  \"type\": \"bundle\",\n  \"config\": {\n    \"product_ids\": [\"{{product_id}}\", \"{{product_id}}\"],\n    \"bundle_price\": 29.99\n  }\n}"
+                },
+                "description": "config.product_ids needs at least 2 distinct product ids in a real bundle - placeholders repeated here for the same reason as the BOGO example above."
+              }
+            },
+            {
+              "name": "List Promotion Rules",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/promotion-rules",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "promotion-rules"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Promotion Rule",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{base_url}}/promotion-rules/{{promotion_rule_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "promotion-rules",
+                    "{{promotion_rule_id}}"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "14. Services",
+      "item": [
+        {
+          "name": "Get Provider Profile",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/provider/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "profile"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Provider Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/provider/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"years_experience\": 5,\n  \"service_area\": {\n    \"cities\": [\n      \"Dubai\",\n      \"Sharjah\"\n    ],\n    \"radius_km\": 25\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Upload Provider Certificate",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/provider/certificates",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "provider",
+                "certificates"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Trade License",
+                  "type": "text"
+                },
+                {
+                  "key": "document",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Needs a real file attached to the 'certificate' form field - only possible from the Postman GUI (Body > form-data > select a file), not from a scripted run. 422s with no file attached, same as KYC Document upload and Upload Product Image."
+          }
+        },
+        {
+          "name": "Create Service Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('service_category_id', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/service-categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "service-categories"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Home Cleaning\",\n  \"slug\": \"home-cleaning\",\n  \"parent_id\": null,\n  \"description\": \"Residential cleaning services\",\n  \"is_active\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "List Service Categories",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/service-categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "service-categories"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Service Category",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/service-categories/{{service_category_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "service-categories",
+                "{{service_category_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Service Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/service-categories/{{service_category_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "service-categories",
+                "{{service_category_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Home Cleaning Services\",\n  \"description\": \"Residential cleaning and maintenance services\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Service",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('service_id', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/services",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "services"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Deep House Cleaning\",\n  \"slug\": \"deep-house-cleaning\",\n  \"description\": \"Full deep cleaning of residential property\",\n  \"service_category_id\": \"{{service_category_id}}\",\n  \"pricing_model\": \"fixed\",\n  \"price\": 250.0,\n  \"duration_minutes\": 180,\n  \"service_area\": [\n    \"Dubai\",\n    \"Sharjah\"\n  ],\n  \"required_equipment\": [\n    \"vacuum\",\n    \"mop\"\n  ],\n  \"cancellation_policy\": \"Free cancellation up to 24 hours before appointment.\",\n  \"status\": \"published\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Services",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/services",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "services"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Service",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/services/{{service_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "services",
+                "{{service_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Service",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/services/{{service_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "services",
+                "{{service_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Deep House Cleaning (Premium)\",\n  \"price\": 275.0\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Service Category",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/service-categories/{{service_category_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "service-categories",
+                "{{service_category_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Staff",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('staff_id', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/staff",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jamie Rivera\",\n  \"email\": \"jamie.rivera@example.test\",\n  \"phone\": \"+971500000001\",\n  \"role\": \"cleaner\",\n  \"is_active\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "List Staff",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/staff",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Staff",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/staff/{{staff_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff",
+                "{{staff_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Staff",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/staff/{{staff_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff",
+                "{{staff_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jamie Rivera-Smith\",\n  \"role\": \"senior cleaner\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Staff Leaves",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/staff/{{staff_id}}/leaves",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff",
+                "{{staff_id}}",
+                "leaves"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Staff Leave",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('staff_leave_id', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/staff/{{staff_id}}/leaves",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff",
+                "{{staff_id}}",
+                "leaves"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"starts_on\": \"2026-09-01\",\n  \"ends_on\": \"2026-09-03\",\n  \"reason\": \"Personal leave\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Staff Schedule",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/staff/{{staff_id}}/schedule",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff",
+                "{{staff_id}}",
+                "schedule"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Staff Leave",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/staff/{{staff_id}}/leaves/{{staff_leave_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff",
+                "{{staff_id}}",
+                "leaves",
+                "{{staff_leave_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Vehicle",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('vehicle_id', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/vehicles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "vehicles"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"staff_id\": \"{{staff_id}}\",\n  \"type\": \"van\",\n  \"registration_number\": \"DXB-{{$randomInt}}\",\n  \"capacity_kg\": 500,\n  \"is_active\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "List Vehicles",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/vehicles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "vehicles"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Vehicle",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/vehicles/{{vehicle_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "vehicles",
+                "{{vehicle_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"pickup truck\",\n  \"capacity_kg\": 800\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Vehicle",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/vehicles/{{vehicle_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "vehicles",
+                "{{vehicle_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "15. Bookings",
+      "item": [
+        {
+          "name": "Create Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('booking_id', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_id\": \"{{service_id}}\",\n  \"scheduled_date\": \"2026-09-10\",\n  \"scheduled_slot_start\": \"09:00\",\n  \"scheduled_slot_end\": \"11:00\",\n  \"address\": {\n    \"line1\": \"123 Palm Street\",\n    \"city\": \"Dubai\"\n  },\n  \"is_emergency\": false,\n  \"notes\": \"Please ring the doorbell twice.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Bookings",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/bookings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Booking",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings",
+                "{{booking_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Accept Booking",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}/accept",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings",
+                "{{booking_id}}",
+                "accept"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Assign Booking to Staff",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}/assign",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings",
+                "{{booking_id}}",
+                "assign"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"staff_id\": \"{{staff_id}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Booking Status (on the way)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings",
+                "{{booking_id}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"on_the_way\",\n  \"note\": \"Provider en route.\"\n}"
+            },
+            "description": "The booking status machine only allows sequential transitions (assigned -> on_the_way -> started -> completed), so reaching 'completed' takes 3 calls in a row - this one, then the two that follow it in this folder."
+          }
+        },
+        {
+          "name": "Update Booking Status (started)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings",
+                "{{booking_id}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"started\",\n  \"note\": \"Auto-advanced by Postman demo.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Booking Status (completed)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings",
+                "{{booking_id}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\",\n  \"note\": \"Auto-advanced by Postman demo.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Provider Calendar",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/providers/{{tenant_id}}/calendar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "providers",
+                "{{tenant_id}}",
+                "calendar"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Holiday",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('holiday_id', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/holidays",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "holidays"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-12-25\",\n  \"name\": \"Christmas Day\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Holidays",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/holidays",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "holidays"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Holiday",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/holidays/{{holiday_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "holidays",
+                "{{holiday_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reject Booking",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}/reject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings",
+                "{{booking_id}}",
+                "reject"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"No staff available for this slot.\"\n}"
+            },
+            "description": "Moved to the end of this folder deliberately: reject transitions the booking to 'cancelled', a terminal state - if this ran between Accept and Assign (its natural chronological spot) it would break every later request in this folder (and Reviews) that depends on this same {{booking_id}} reaching 'completed'. Run standalone against a fresh booking to see it succeed; here it will correctly 422 since the demo booking is already 'completed' by this point."
+          }
+        }
+      ]
+    },
+    {
+      "name": "16. Reviews",
+      "item": [
+        {
+          "name": "Create Booking Review",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('review_id', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings/{{booking_id}}/reviews",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bookings",
+                "{{booking_id}}",
+                "reviews"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quality_rating\": 5,\n  \"behavior_rating\": 5,\n  \"time_rating\": 4,\n  \"communication_rating\": 5,\n  \"comment\": \"Excellent service, very professional and on time.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Reviews",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/reviews",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reviews"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "19. Reports",
+      "item": [
+        {
+          "name": "Get Admin Dashboard",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "dashboard"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Sales Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/reports/sales",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reports",
+                "sales"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Bookings Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/reports/bookings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reports",
+                "bookings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Provider Performance Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/reports/provider-performance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reports",
+                "provider-performance"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Top Selling Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/reports/top-selling",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reports",
+                "top-selling"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "20. Notifications",
+      "item": [
+        {
+          "name": "List Notifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const items = pm.response.json().data;",
+                  "if (items && items.length) { pm.collectionVariables.set('notification_id', items[0].id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/notifications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/notifications/{{notification_id}}/read",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "{{notification_id}}",
+                "read"
+              ]
+            },
+            "description": "404s in a fresh top-to-bottom run if no in-app notification exists yet for this user (List Notifications ran with an empty list, so {{notification_id}} is unset) - a benign empty-state, not a bug. Notifications get created by events like booking status changes; run this again after those have fired to see a real one marked read."
+          }
+        },
+        {
+          "name": "Create Notification Template (Super Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('notification_template_id', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/notification-templates",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "notification-templates"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event_type\": \"booking.completed\",\n  \"channel\": \"email\",\n  \"subject\": \"Your booking is complete\",\n  \"body\": \"Hi {{customer_name}}, your booking has been marked as completed. Thank you for using our service.\",\n  \"is_active\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "List Notification Templates (Super Admin)",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/notification-templates",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "notification-templates"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Notification Template (Super Admin)",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/notification-templates/{{notification_template_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "notification-templates",
+                "{{notification_template_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Your booking is now complete\",\n  \"body\": \"Thanks for booking with us! Your service has been completed.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Notification Template (Super Admin)",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/notification-templates/{{notification_template_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "notification-templates",
+                "{{notification_template_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "21. CMS",
+      "item": [
+        {
+          "name": "List Public CMS Pages",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/cms/pages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cms",
+                "pages"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Public Blog Posts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/cms/blog-posts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cms",
+                "blog-posts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Public FAQs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/cms/faqs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cms",
+                "faqs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Page",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('page_id', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/pages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "pages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"About Us\",\n  \"slug\": \"about-us\",\n  \"content\": \"<p>We are a leading multi-service marketplace.</p>\",\n  \"status\": \"published\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Pages",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/pages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "pages"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Page",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/pages/{{page_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "pages",
+                "{{page_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Page",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/pages/{{page_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "pages",
+                "{{page_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"About Our Company\",\n  \"content\": \"<p>Updated company overview content.</p>\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Page Versions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/pages/{{page_id}}/versions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "pages",
+                "{{page_id}}",
+                "versions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Blog Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('blog_post_id', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/blog-posts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "blog-posts"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"5 Tips for a Cleaner Home\",\n  \"slug\": \"5-tips-for-a-cleaner-home\",\n  \"excerpt\": \"Simple habits that keep your home spotless.\",\n  \"content\": \"<p>Full blog post content goes here.</p>\",\n  \"status\": \"published\",\n  \"published_at\": \"2026-08-07T09:00:00Z\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Blog Posts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/blog-posts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "blog-posts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Blog Post",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/blog-posts/{{blog_post_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "blog-posts",
+                "{{blog_post_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Blog Post",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/blog-posts/{{blog_post_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "blog-posts",
+                "{{blog_post_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"5 Pro Tips for a Cleaner Home\",\n  \"status\": \"published\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create FAQ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('faq_id', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/faqs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "faqs"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How do I cancel a booking?\",\n  \"answer\": \"You can cancel a booking from your account dashboard up to 24 hours before the scheduled time.\",\n  \"position\": 1,\n  \"is_active\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "List FAQs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/faqs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "faqs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get FAQ",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/faqs/{{faq_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "faqs",
+                "{{faq_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update FAQ",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/faqs/{{faq_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "faqs",
+                "{{faq_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"answer\": \"You can cancel a booking free of charge up to 24 hours before the scheduled time via your dashboard.\",\n  \"position\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete FAQ",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/admin/faqs/{{faq_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "faqs",
+                "{{faq_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Blog Post",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/admin/blog-posts/{{blog_post_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "blog-posts",
+                "{{blog_post_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Page",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/admin/pages/{{page_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "pages",
+                "{{page_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "22. Cleanup / Session Teardown",
+      "item": [
+        {
+          "name": "Delete Product Variant",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/products/{{product_id}}/variants/{{variant_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "products",
+                "{{product_id}}",
+                "variants",
+                "{{variant_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/products/{{product_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "products",
+                "{{product_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Service",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/services/{{service_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "services",
+                "{{service_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Staff",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/staff/{{staff_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff",
+                "{{staff_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Tag",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/tags/{{tag_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tags",
+                "{{tag_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
           }
         }
       ]

@@ -11,6 +11,7 @@ use App\Modules\Payments\Services\PaymentService;
 use App\Modules\Tenants\Models\Tenant;
 use App\Modules\Tenants\Support\TenantContext;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 function makeTenantWithOwner(string $subdomain): array
 {
@@ -73,6 +74,13 @@ test('a successful webhook confirms the order exactly once', function () {
         'amount' => $this->order->total, 'currency' => 'USD', 'status' => 'pending',
         'idempotency_key' => (string) Str::uuid(),
     ]);
+
+    // The webhook route is public/unauthenticated - simulate that by
+    // dropping tenant context to the restrictive empty state (as a real
+    // courier/gateway callback would start from), proving the service's
+    // own bypass is what makes this work, not test-harness leniency.
+    app(TenantContext::class)->clear();
+    DB::statement("select set_config('app.current_tenant_id', '', false)");
 
     $request = fakeSslcommerzWebhookRequest($payment->idempotency_key, 'BANKTX-001');
     app(PaymentService::class)->handleWebhook('sslcommerz', $request);

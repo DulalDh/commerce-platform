@@ -60,6 +60,16 @@ class PaymentService
 
         $payload = $gatewayImpl->parseWebhookPayload($request);
 
+        // The webhook route is public (couriers/gateways call it directly,
+        // no user session) so ResolveTenant never resolves a tenant here -
+        // with RLS enabled on payments/orders this would otherwise block
+        // every legitimate webhook. The verified signature above is the
+        // trust boundary; the idempotency-key lookup below is what scopes
+        // the write to the correct payment/order/tenant, same as a queued
+        // job scoping its own queries.
+        $this->tenantContext->bypass();
+        DB::statement("select set_config('app.current_tenant_id', 'bypass', false)");
+
         DB::transaction(function () use ($payload) {
             $payment = Payment::withoutGlobalScopes()
                 ->where('idempotency_key', $payload->idempotencyKey)

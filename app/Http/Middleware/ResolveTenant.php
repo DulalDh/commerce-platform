@@ -24,6 +24,13 @@ class ResolveTenant
     {
         $context = app(TenantContext::class);
 
+        // TenantContext is a scoped() binding, which only Octane actually
+        // flushes between requests - on a plain worker/test process it can
+        // behave like a singleton, so relying on "fresh instance per
+        // request" is not safe. Reset explicitly every time rather than
+        // trusting container lifecycle semantics for tenant isolation.
+        $context->clear();
+
         $tenant = $this->resolveTenant($request);
 
         if ($tenant) {
@@ -39,7 +46,15 @@ class ResolveTenant
 
     public function terminate(Request $request, Response $response): void
     {
-        DB::statement("select set_config('app.current_tenant_id', '', false)");
+        // Idle state (no active tenant-scoped request on this connection)
+        // defaults to bypass, matching queue workers and console commands -
+        // '' would restrict any code that runs on this connection between
+        // requests (e.g. test assertions right after an HTTP call, in the
+        // same process/connection) to tenant_id IS NULL rows only. The next
+        // real request always re-resolves and overwrites this before
+        // running any query of its own, so relaxing the idle default here
+        // never weakens isolation for an actual request.
+        DB::statement("select set_config('app.current_tenant_id', 'bypass', false)");
     }
 
     protected function resolveTenant(Request $request): ?Tenant
@@ -48,7 +63,11 @@ class ResolveTenant
             return Tenant::withoutGlobalScopes()->find($request->user()->tenant_id);
         }
 
-        if ($tenantId = $request->header('X-Tenant-ID')) {
+        // The X-Tenant-ID header lets a Super Admin act on behalf of a
+        // specific tenant (support/console use). It must never be honored
+        // for a non-super-admin caller - tenant_id === null also describes
+        // every ordinary self-registered customer, not just admins.
+        if ($this->isSuperAdmin($request) && ($tenantId = $request->header('X-Tenant-ID'))) {
             return Tenant::withoutGlobalScopes()->find($tenantId);
         }
 
@@ -57,7 +76,7 @@ class ResolveTenant
 
     protected function isSuperAdmin(Request $request): bool
     {
-        return $request->user() && $request->user()->tenant_id === null;
+        return (bool) $request->user()?->hasRole('super-admin');
     }
 
     protected function setRlsSessionVar(TenantContext $context): void

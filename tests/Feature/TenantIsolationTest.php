@@ -141,3 +141,45 @@ test('super-admin sees roles across all tenants, tenant owner is forbidden from 
         ->assertJsonFragment(['tenant_id' => $this->tenantA->id])
         ->assertJsonFragment(['tenant_id' => $this->tenantB->id]);
 });
+
+test('a plain customer with no tenant_id and no role is never granted the super-admin RLS/scope bypass', function () {
+    // Regression for a bug where ResolveTenant::isSuperAdmin() checked
+    // tenant_id === null, which is also true of every ordinary
+    // self-registered customer (register() never sets tenant_id) - meaning
+    // any such customer was silently granted a full tenant-scoping bypass.
+    $customer = User::create([
+        'tenant_id' => null,
+        'name' => 'Plain Customer',
+        'email' => 'plain-customer@example.test',
+        'password' => bcrypt('password'),
+    ]);
+
+    // No X-Tenant-ID header, no role: must resolve to "no tenant, no
+    // bypass" and see nothing on a tenant-scoped endpoint - not everything.
+    $this->actingAs($customer, 'sanctum')
+        ->getJson('/api/v1/customers')
+        ->assertOk()
+        ->assertJsonCount(0, 'data');
+});
+
+test('a plain customer cannot use X-Tenant-ID to impersonate a merchant tenant', function () {
+    $victimOwner = User::create([
+        'tenant_id' => $this->tenantA->id,
+        'name' => 'Victim Owner',
+        'email' => 'victim-owner@example.test',
+        'password' => bcrypt('password'),
+    ]);
+
+    $attacker = User::create([
+        'tenant_id' => null,
+        'name' => 'Attacker',
+        'email' => 'attacker@example.test',
+        'password' => bcrypt('password'),
+    ]);
+
+    $response = $this->actingAs($attacker, 'sanctum')
+        ->withHeaders(['X-Tenant-ID' => $this->tenantA->id])
+        ->getJson('/api/v1/customers');
+
+    $response->assertOk()->assertJsonCount(0, 'data');
+});

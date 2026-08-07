@@ -69,6 +69,11 @@ class ShippingService
         $payload = $providerImpl->parseWebhookPayload($request);
         $normalizedStatus = self::STATUS_MAP[strtolower($payload->status)] ?? 'in_transit';
 
+        // Public route, no user session - see PaymentService::handleWebhook
+        // for why this must bypass tenant scoping after the signature check.
+        $this->tenantContext->bypass();
+        DB::statement("select set_config('app.current_tenant_id', 'bypass', false)");
+
         DB::transaction(function () use ($provider, $payload, $normalizedStatus) {
             $shipment = Shipment::withoutGlobalScopes()
                 ->where('provider', $provider)
