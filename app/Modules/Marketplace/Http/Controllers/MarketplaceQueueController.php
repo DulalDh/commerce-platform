@@ -5,6 +5,7 @@ namespace App\Modules\Marketplace\Http\Controllers;
 use App\Modules\Catalog\Http\Resources\ProductResource;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Marketplace\Http\Requests\RejectMarketplaceListingRequest;
+use App\Modules\Marketplace\Jobs\IndexProductJob;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 
@@ -29,6 +30,8 @@ class MarketplaceQueueController
             'marketplace_rejection_reason' => null,
         ]);
 
+        IndexProductJob::dispatch((string) $product->id);
+
         return ApiResponse::success(new ProductResource($product));
     }
 
@@ -39,6 +42,8 @@ class MarketplaceQueueController
             'published_to_marketplace' => false,
             'marketplace_rejection_reason' => $request->reason,
         ]);
+
+        IndexProductJob::dispatch((string) $product->id);
 
         return ApiResponse::success(new ProductResource($product));
     }

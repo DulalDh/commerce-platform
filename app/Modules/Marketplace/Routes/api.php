@@ -2,7 +2,10 @@
 
 use App\Modules\Marketplace\Http\Controllers\MarketplaceQueueController;
 use App\Modules\Marketplace\Http\Controllers\ProductPublishController;
+use App\Modules\Marketplace\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/search', [SearchController::class, 'index']);
 
 Route::middleware('auth:sanctum')->put('/products/{product}/publish-to-marketplace', [ProductPublishController::class, 'store']);
 

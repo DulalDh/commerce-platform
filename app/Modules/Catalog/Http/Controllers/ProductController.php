@@ -6,6 +6,7 @@ use App\Modules\Catalog\Http\Requests\StoreProductRequest;
 use App\Modules\Catalog\Http\Requests\UpdateProductRequest;
 use App\Modules\Catalog\Http\Resources\ProductResource;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Marketplace\Jobs\IndexProductJob;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -44,6 +45,8 @@ class ProductController
             return $product;
         });
 
+        IndexProductJob::dispatch((string) $product->id);
+
         return ApiResponse::success(
             new ProductResource($product->load(['tags', 'variants', 'images'])),
             status: 201
@@ -65,6 +68,8 @@ class ProductController
             $product->tags()->sync($request->input('tag_ids'));
         }
 
+        IndexProductJob::dispatch((string) $product->id);
+
         return ApiResponse::success(
             new ProductResource($product->load(['tags', 'variants', 'images']))
         );
@@ -73,6 +78,8 @@ class ProductController
     public function destroy(Product $product): JsonResponse
     {
         $product->delete();
+
+        IndexProductJob::dispatch((string) $product->id);
 
         return ApiResponse::success(status: 204);
     }
