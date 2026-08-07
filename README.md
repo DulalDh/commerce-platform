@@ -1,60 +1,263 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Commerce Platform — Multi-Tenant Marketplace API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A multi-tenant, multi-vertical marketplace API built with Laravel. A single
+platform hosts many independent tenants (merchants/service providers), each
+selling either **products** (product marketplace) or **services with
+bookings** (service marketplace), on top of shared platform features:
+catalog, inventory, orders, payments, promotions, shipping, subscriptions,
+reviews, reports, notifications, and a lightweight CMS.
 
-## About Laravel
+Tenant isolation is enforced in two layers:
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Application layer** — every tenant-owned model is scoped by `tenant_id`
+  via Eloquent global scopes and the `ResolveTenant` middleware, which
+  resolves the current tenant from the authenticated user (or lets a
+  `super-admin` impersonate a tenant via the `X-Tenant-ID` header).
+- **Database layer** — Postgres **Row-Level Security (RLS)** is enabled and
+  *forced* on all ~39 tenant-owned tables, so a bug in application code
+  cannot leak cross-tenant data. The app connects as a dedicated
+  non-superuser role (`marketplace_app`) because RLS is always bypassed by
+  Postgres superusers.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Tech stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Layer            | Technology |
+|-------------------|------------|
+| Language / Framework | PHP 8.2+, Laravel 12 |
+| Database          | PostgreSQL 16 (with Row-Level Security) |
+| Cache / Sessions / Queue | Redis 7 |
+| Search            | Meilisearch |
+| Object storage    | S3-compatible (MinIO locally) |
+| Auth              | Laravel Sanctum (bearer tokens) + Laravel Socialite (OAuth) |
+| Authorization     | spatie/laravel-permission (roles & permissions, tenant-scoped) |
+| PDF generation    | barryvdh/laravel-dompdf |
+| Testing           | Pest (+ pest-plugin-laravel) |
+| Static analysis   | Larastan / PHPStan |
+| Code style        | Laravel Pint |
+| Containers        | Docker Compose (app, nginx, postgres, redis, meilisearch, minio) |
 
-## Learning Laravel
+## Architecture
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+The app is organized as self-contained **modules** under `app/Modules/*`,
+each with its own routes, controllers, models, requests, migrations,
+providers, and (where applicable) policies:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```
+Auth · Tenants · RBAC · Catalog · Inventory · Orders · Payments ·
+Customers · Marketplace · Subscriptions · Shipping · Promotions ·
+Services · Bookings · Reviews · Reports · Notifications · CMS
+```
 
-## Laravel Sponsors
+Each module registers its own `Routes/api.php` via its
+`*ServiceProvider`; all API routes ultimately hang off `routes/api.php` /
+`bootstrap/app.php`. Global middleware applied to every API request:
+`ForceJsonResponse`, `ResolveTenant` (tenant scoping), `AuditLog`.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Prerequisites
 
-### Premium Partners
+- PHP 8.2+ with the `pdo_pgsql` and `redis` extensions
+- Composer
+- Node.js + npm (for the Vite-built frontend assets, minimal in this API-first app)
+- Docker + Docker Compose (recommended — provides Postgres, Redis, Meilisearch, MinIO)
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Getting started
 
-## Contributing
+### 1. Clone and install dependencies
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+git clone <repo-url>
+cd commerce-platform
+composer install
+npm install
+```
 
-## Code of Conduct
+### 2. Configure environment
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-## Security Vulnerabilities
+The defaults in `.env.example` are already wired for the Docker Compose
+stack below (Postgres on `5432`, Redis on `6379`, Meilisearch on `7700`,
+MinIO/S3 on `9000`). Adjust `DB_*`, `REDIS_*`, `MEILISEARCH_*`, `AWS_*` if
+you're pointing at your own infrastructure instead.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 3. Start infrastructure (Docker)
+
+```bash
+docker compose up -d
+```
+
+This brings up:
+
+- `postgres` — Postgres 16, database `marketplace`
+- `redis` — cache/session/queue backend
+- `meilisearch` — search engine (master key `masterKeyChangeMe` by default)
+- `minio` / `minio-init` — S3-compatible object storage + bucket bootstrap
+- `app` / `nginx` — the app served on `http://localhost:8080` (optional —
+  you can also just run `php artisan serve` locally against these
+  containers, see step 5)
+
+`docker/postgres/init.sql` runs once on first boot and creates the
+non-superuser `marketplace_app` role the application actually connects as
+(required for Postgres RLS to be enforced), plus a separate
+`marketplace_test` database for the test suite.
+
+> Running without Docker? Point `.env` at your own Postgres/Redis/Meilisearch
+> instances and replicate `docker/postgres/init.sql` manually — the app
+> **must** connect as a non-superuser Postgres role for RLS to take effect.
+
+### 4. Run database migrations
+
+```bash
+php artisan migrate
+```
+
+Migrations live both in `database/migrations/` (core/framework tables) and
+inside each `app/Modules/*/Database/Migrations/` (module-owned tables).
+Laravel auto-discovers module migration paths via each module's service
+provider.
+
+### 5. (Optional) Seed base data
+
+```bash
+php artisan db:seed
+```
+
+`database/seeders/DatabaseSeeder.php` creates a basic test user. To seed
+the platform's RBAC roles/permissions (`super-admin` role with
+`manage-roles`, `manage-permissions`, `manage-tenants` permissions), run:
+
+```bash
+php artisan db:seed --class="App\\Modules\\RBAC\\Database\\Seeders\\RolesAndPermissionsSeeder"
+```
+
+Note this seeder only *creates the role* — it does not assign it to any
+user (see [Permissions & roles](#permissions--roles-rbac) below for how to
+promote a user to `super-admin`).
+
+### 6. Run the app
+
+```bash
+composer dev
+```
+
+This runs the PHP dev server, queue worker, log tailer (`pail`), and Vite
+dev server concurrently. Or run pieces individually:
+
+```bash
+php artisan serve                              # HTTP server
+php artisan queue:listen --tries=1 --timeout=0 # queue worker
+npm run dev                                    # Vite (assets)
+```
+
+The API is now available at `http://127.0.0.1:8000/api` (or
+`http://localhost:8080/api` if using the Dockerized nginx).
+
+## Testing
+
+```bash
+composer test
+# or directly:
+./vendor/bin/pest
+```
+
+CI (`.github/workflows/*.yml`) runs against a dedicated `marketplace_test`
+Postgres database with the same non-superuser role setup as local Docker,
+plus:
+
+```bash
+./vendor/bin/pint --test                                   # code style check
+./vendor/bin/phpstan analyse --no-progress --memory-limit=512M  # static analysis
+php artisan migrate --pretend                               # migration dry-run
+```
+
+Run `./vendor/bin/pint` (no `--test`) to auto-fix style issues.
+
+## Exploring / testing the API
+
+- A ready-to-import Postman collection with example requests for every
+  endpoint lives at `docs/postman/marketplace-api.postman_collection.json`
+  (folders numbered by build phase: Tenants/Auth/RBAC → Catalog/Inventory/
+  Orders/Payments/Customers → Super Admin/Marketplace/Subscriptions/
+  Shipping/Promotions → Services/Bookings/Reviews → Search/Reports/
+  Notifications/CMS).
+- `docs/API_CHANGELOG.md` tracks the frozen v1.0.0 API contract and the
+  rules for evolving it.
+- `docs/load-test/golden-path.js` is a k6 load-testing script covering the
+  core happy-path flow.
+
+### Typical flow: register a tenant, log in, create a brand
+
+```bash
+# 1. Register a tenant — creates the Tenant, its owner User, and assigns
+#    that user the tenant-scoped "tenant-owner" role, all in one transaction.
+curl -X POST http://127.0.0.1:8000/api/tenants \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Acme Co",
+    "type": "merchant",
+    "subdomain": "acme",
+    "owner_name": "Alice Owner",
+    "owner_email": "owner@example.test",
+    "owner_password": "secret123"
+  }'
+
+# 2. Log in as the owner to get a Sanctum bearer token
+curl -X POST http://127.0.0.1:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "owner@example.test", "password": "secret123"}'
+
+# 3. Create a brand under that tenant (requires an authenticated,
+#    tenant-scoped user — any role, not just super-admin)
+curl -X POST http://127.0.0.1:8000/api/brands \
+  -H "Authorization: Bearer <token from step 2>" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Acme Brand", "slug": "acme-brand-1"}'
+```
+
+## Permissions & roles (RBAC)
+
+Authorization uses `spatie/laravel-permission`, with roles scoped per
+tenant via a custom `tenant_id` column (see `App\Modules\RBAC\Models\Role`).
+Two roles matter most:
+
+- **`tenant-owner`** — created automatically per-tenant when a tenant
+  registers (`POST /api/tenants`). Scoped to that tenant only; can manage
+  their own store's catalog, orders, bookings, etc.
+- **`super-admin`** — platform-wide (`tenant_id = null`). Required for
+  `role:super-admin`-gated routes such as `/api/admin/merchants/*`
+  (approve/suspend tenants), and for using the `X-Tenant-ID` header to act
+  on behalf of any tenant. **Not seeded or assigned by default.** To grant
+  it:
+
+  ```bash
+  php artisan db:seed --class="App\\Modules\\RBAC\\Database\\Seeders\\RolesAndPermissionsSeeder"
+  php artisan tinker
+  >>> $user = \App\Models\User::where('email', 'owner@example.test')->first();
+  >>> $user->tenant_id = null; // super-admins are platform-level, not tenant-scoped
+  >>> $user->save();
+  >>> $user->assignRole(\App\Modules\RBAC\Models\Role::withoutGlobalScopes()->where('name', 'super-admin')->whereNull('tenant_id')->first());
+  ```
+
+Route-level enforcement uses the `role`, `permission`, and
+`role_or_permission` middleware aliases (from `spatie/laravel-permission`),
+registered in `bootstrap/app.php`.
+
+## Environment variables of note
+
+See `.env.example` for the full list. Key groups:
+
+- `DB_*` — Postgres connection. The app **must** run as a non-superuser
+  role (`marketplace_app` by default) for Row-Level Security to be
+  enforced; `DB_MIGRATE_*` is a separate superuser-adjacent role used only
+  by Docker's init script and isolation tests, never for app runtime.
+- `REDIS_*` — used for `SESSION_DRIVER`, `CACHE_STORE`, and `QUEUE_CONNECTION`.
+- `MEILISEARCH_HOST` / `MEILISEARCH_KEY` — marketplace/product search.
+- `AWS_*` — S3-compatible storage config (points at local MinIO by default).
+- `MAIL_*` — defaults to the `log` driver locally (emails written to the log instead of sent).
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# commerce-platform
+MIT (inherited from the Laravel skeleton this project was scaffolded from).
