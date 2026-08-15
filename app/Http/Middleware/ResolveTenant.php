@@ -65,9 +65,20 @@ class ResolveTenant
 
         // The X-Tenant-ID header lets a Super Admin act on behalf of a
         // specific tenant (support/console use). It must never be honored
-        // for a non-super-admin caller - tenant_id === null also describes
-        // every ordinary self-registered customer, not just admins.
+        // for an arbitrary authenticated caller - tenant_id === null also
+        // describes every ordinary self-registered customer, not just admins.
         if ($this->isSuperAdmin($request) && ($tenantId = $request->header('X-Tenant-ID'))) {
+            return Tenant::withoutGlobalScopes()->find($tenantId);
+        }
+
+        // Anonymous storefront browsing: there's no session at all, so
+        // there's no user.tenant_id to fall back on. Only trust the header
+        // here on routes explicitly marked 'tenant.public' (see
+        // AllowPublicTenantHeader) - those are read-only and already scoped
+        // to publicly-visible data, so letting an anonymous visitor pick
+        // which tenant's storefront they're browsing isn't a privilege
+        // escalation the way it would be on an authenticated/admin route.
+        if ($this->allowsPublicTenantHeader($request) && ($tenantId = $request->header('X-Tenant-ID'))) {
             return Tenant::withoutGlobalScopes()->find($tenantId);
         }
 
@@ -77,6 +88,13 @@ class ResolveTenant
     protected function isSuperAdmin(Request $request): bool
     {
         return (bool) $request->user()?->hasRole('super-admin');
+    }
+
+    protected function allowsPublicTenantHeader(Request $request): bool
+    {
+        $route = $request->route();
+
+        return $route !== null && in_array('tenant.public', $route->gatherMiddleware(), true);
     }
 
     protected function setRlsSessionVar(TenantContext $context): void

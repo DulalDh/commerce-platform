@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AllowPublicTenantHeader;
 use App\Http\Middleware\AuditLog;
 use App\Http\Middleware\EnforcePlanLimit;
 use App\Http\Middleware\ForceJsonResponse;
@@ -29,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'plan.limit' => EnforcePlanLimit::class,
+            'tenant.public' => AllowPublicTenantHeader::class,
         ]);
 
         $middleware->api(prepend: [

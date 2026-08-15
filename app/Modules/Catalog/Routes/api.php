@@ -24,3 +24,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/products/{product}/variants', [ProductVariantController::class, 'store']);
     Route::delete('/products/{product}/variants/{variant}', [ProductVariantController::class, 'destroy']);
 });
+
+// Anonymous storefront browsing. No auth:sanctum - tenant is resolved from
+// the X-Tenant-ID header by ResolveTenant, trusted here only because
+// 'tenant.public' marks these as read-only + published-only.
+Route::middleware('tenant.public')->prefix('storefront')->group(function () {
+    Route::get('/products', [ProductController::class, 'publicIndex']);
+    Route::get('/products/{slug}', [ProductController::class, 'publicShow']);
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/brands', [BrandController::class, 'index']);
+    Route::get('/tags', [TagController::class, 'index']);
+});

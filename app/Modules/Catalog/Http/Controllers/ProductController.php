@@ -83,4 +83,37 @@ class ProductController
 
         return ApiResponse::success(status: 204);
     }
+
+    /**
+     * Storefront listing - anonymous, tenant resolved from X-Tenant-ID via
+     * the 'tenant.public' route middleware, and restricted to published
+     * products only (unlike index(), which is the tenant-admin's own view
+     * and includes drafts).
+     */
+    public function publicIndex(): JsonResponse
+    {
+        $products = Product::with(['tags', 'variants', 'images'])
+            ->where('status', 'published')
+            ->orderByDesc('created_at')
+            ->paginate(20);
+
+        return ApiResponse::success(
+            ProductResource::collection($products),
+            ['pagination' => [
+                'total' => $products->total(),
+                'per_page' => $products->perPage(),
+                'current_page' => $products->currentPage(),
+            ]]
+        );
+    }
+
+    public function publicShow(string $slug): JsonResponse
+    {
+        $product = Product::with(['tags', 'variants', 'images'])
+            ->where('status', 'published')
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        return ApiResponse::success(new ProductResource($product));
+    }
 }
