@@ -19,6 +19,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/products/{product}/images', [ProductImageController::class, 'store']);
     Route::delete('/products/{product}/images/{image}', [ProductImageController::class, 'destroy']);
+    Route::patch('/products/{product}/images/{image}/primary', [ProductImageController::class, 'setPrimary']);
 
     Route::post('/products/{product}/variants', [ProductVariantController::class, 'store']);
     Route::delete('/products/{product}/variants/{variant}', [ProductVariantController::class, 'destroy']);

@@ -13,10 +13,20 @@ class ProductImage extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['tenant_id', 'product_id', 'path', 'position'];
+    protected $fillable = ['tenant_id', 'product_id', 'path', 'position', 'is_primary', 'variants'];
+
+    protected $casts = [
+        'is_primary' => 'boolean',
+        'variants' => 'array',
+    ];
 
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function scopePrimary($query)
+    {
+        return $query->where('is_primary', true);
     }
 }
