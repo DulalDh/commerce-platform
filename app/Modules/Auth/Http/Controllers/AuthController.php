@@ -23,6 +23,9 @@ class AuthController
 
         $token = $user->createToken('api')->plainTextToken;
 
+        $roleNames = $user->getRoleNames();
+        $user->unsetRelation('roles')->setAttribute('roles', $roleNames);
+
         return ApiResponse::success(['user' => $user, 'token' => $token], status: 201);
     }
 
@@ -37,6 +40,9 @@ class AuthController
         }
 
         $token = $user->createToken('api')->plainTextToken;
+
+        $roleNames = $user->getRoleNames();
+        $user->unsetRelation('roles')->setAttribute('roles', $roleNames);
 
         return ApiResponse::success(['user' => $user, 'token' => $token]);
     }
