@@ -9,6 +9,7 @@ use App\Modules\Catalog\Models\ProductImage;
 use App\Modules\Catalog\Services\ProductImageVariantService;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class ProductImageController
 {
@@ -19,22 +20,44 @@ class ProductImageController
     public function store(UploadProductImageRequest $request, Product $product): JsonResponse
     {
         $disk = config('filesystems.default');
-        $variants = $this->variantService->store(
-            $request->file('image'),
-            "products/{$product->id}/images",
-            $disk,
-        );
+        $files = $request->file('images');
+        $primaryIndex = $request->has('primary_index') ? (int) $request->input('primary_index') : null;
+        $hasExistingImages = $product->images()->exists();
+        $nextPosition = $product->images()->count();
 
-        $isFirstImage = ! $product->images()->exists();
+        $images = DB::transaction(function () use ($files, $product, $disk, $primaryIndex, $hasExistingImages, $nextPosition) {
+            $created = [];
 
-        $image = $product->images()->create([
-            'path' => $variants['original'],
-            'variants' => $variants,
-            'position' => $request->input('position', $product->images()->count()),
-            'is_primary' => $isFirstImage,
-        ]);
+            foreach (array_values($files) as $index => $file) {
+                $variants = $this->variantService->store(
+                    $file,
+                    "products/{$product->id}/images",
+                    $disk,
+                );
 
-        return ApiResponse::success(new ProductImageResource($image), status: 201);
+                $isPrimary = $primaryIndex !== null
+                    ? $index === $primaryIndex
+                    : (! $hasExistingImages && $index === 0);
+
+                $created[] = $product->images()->create([
+                    'path' => $variants['original'],
+                    'variants' => $variants,
+                    'position' => $nextPosition + $index,
+                    'is_primary' => $isPrimary,
+                ]);
+            }
+
+            if ($primaryIndex !== null) {
+                $primaryId = $created[$primaryIndex]->id ?? null;
+                if ($primaryId) {
+                    $product->images()->where('id', '!=', $primaryId)->update(['is_primary' => false]);
+                }
+            }
+
+            return $created;
+        });
+
+        return ApiResponse::success(ProductImageResource::collection($images), status: 201);
     }
 
     public function destroy(Product $product, string $image): JsonResponse

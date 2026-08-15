@@ -14,8 +14,9 @@ class UploadProductImageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'image' => ['required', 'image', 'max:4096'],
-            'position' => ['sometimes', 'integer', 'min:0'],
+            'images' => ['required', 'array', 'min:1'],
+            'images.*' => ['image', 'max:4096'],
+            'primary_index' => ['sometimes', 'integer', 'min:0'],
         ];
     }
 }
